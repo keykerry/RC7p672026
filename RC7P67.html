@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RC7 part 6 part 7</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Base style for parsed phrase chips */
+        .phrase-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px 1px;
+            border-radius: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+            border-bottom: 2px transparent solid;
+            line-height: 1.8rem;
+        }
+
+        /* Pastel Highlight colors on hover or active filter */
+        .phrase-vp:hover, .phrase-vp.active-filter {
+            background-color: #ffedd5 !important;
+            color: #9a3412;
+            border-bottom-color: #f97316;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+        }
+
+        .phrase-np:hover, .phrase-np.active-filter {
+            background-color: #dbeafe !important;
+            color: #1e40af;
+            border-bottom-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        }
+
+        .phrase-pp:hover, .phrase-pp.active-filter {
+            background-color: #dcfce7 !important;
+            color: #166534;
+            border-bottom-color: #22c55e;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+        }
+
+        .phrase-adjp:hover, .phrase-adjp.active-filter {
+            background-color: #fef3c7 !important;
+            color: #92400e;
+            border-bottom-color: #eab308;
+            box-shadow: 0 2px 8px rgba(234, 179, 8, 0.15);
+        }
+
+        .phrase-other:hover, .phrase-other.active-filter {
+            background-color: #f3e8ff !important;
+            color: #6b21a8;
+            border-bottom-color: #a855f7;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.15);
+        }
+
+        /* Hover Tooltip design */
+        .phrase-tag .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            z-index: 50;
+            pointer-events: none;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .phrase-tag:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Note formatting in brackets */
+        .bracket-note {
+            color: #64748b;
+            font-weight: 400;
+            font-size: 0.9em;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        /* Bold emphasis for words immediately preceding brackets */
+        .bold-before-bracket {
+            font-weight: 700 !important;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-16">
+
+    <!-- Bộ lọc cố định ở trên cùng -->
+    <div class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-4 py-3">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Bộ lọc hiển thị theo loại cụm từ:</div>
+            <div class="flex flex-wrap gap-2 text-xs font-medium">
+                <button onclick="filterType('all')" class="legend-btn active px-3.5 py-2 rounded-lg border border-slate-200 bg-slate-800 text-white transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-border-all"></i> Tất cả
+                </button>
+                <button onclick="filterType('vp')" class="legend-btn px-3.5 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-900 hover:bg-orange-100 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Cụm động từ
+                </button>
+                <button onclick="filterType('np')" class="legend-btn px-3.5 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-900 hover:bg-blue-100 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Cụm danh từ
+                </button>
+                <button onclick="filterType('pp')" class="legend-btn px-3.5 py-2 rounded-lg border border-green-200 bg-green-50 text-green-900 hover:bg-green-100 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Cụm giới từ
+                </button>
+                <button onclick="filterType('adjp')" class="legend-btn px-3.5 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Cụm tính từ / Phó từ
+                </button>
+                <button onclick="filterType('other')" class="legend-btn px-3.5 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 hover:bg-purple-100 transition flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Thành phần lẻ / Từ nối
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 gap-6">
+
+        <!-- Hộp hiển thị văn bản đã tách cụm -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 min-h-[180px] relative">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-orange-500"></i> RC5 PART 6 PART 7
+                </h2>
+                <div class="flex items-center gap-2">
+                    <span id="engineBadge" class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-medium">
+                        Đáp án chuẩn
+                    </span>
+                    <span id="phraseCount" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-medium">0 cụm</span>
+                </div>
+            </div>
+
+            <div id="resultContent" class="text-base md:text-lg leading-relaxed text-slate-800 tracking-wide select-text py-2">
+                <!-- Nội dung được điền tự động bằng JavaScript -->
+            </div>
+        </section>
+
+        <!-- Active Selected Phrase Detail Box -->
+        <div id="detailCard" class="bg-slate-900 text-white rounded-2xl p-4 shadow-lg border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-language"></i>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-400 font-medium mb-0.5">Dịch nghĩa cụm từ đang hover:</div>
+                    <div id="cardTranslation" class="font-semibold text-orange-300 text-base md:text-lg">Rê chuột hoặc chạm vào cụm từ bất kỳ ở trên</div>
+                </div>
+            </div>
+            <div class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
+                <span>Loại cú pháp:</span>
+                <span id="cardGrammarType" class="font-bold text-white">Chưa chọn</span>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const DEFAULT_PARSED_DATA = [
+  // ===== Questions 131-134 =====
+  { text: "Questions 131-134", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 131-134", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following advertisement.", type: "np", grammarName: "Cụm danh từ", viTranslation: "quảng cáo sau." },
+
+  { text: "Do you fancy (thích) playing", type: "vp", grammarName: "Cụm động từ", viTranslation: "Bạn có thích chơi", breakLine: true },
+  { text: "games", type: "np", grammarName: "Cụm danh từ", viTranslation: "trò chơi" },
+  { text: "with your mates (bạn bè)?", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cùng bạn bè không?" },
+
+  { text: "Do you enjoy", type: "vp", grammarName: "Cụm động từ", viTranslation: "Bạn có thích", breakLine: true },
+  { text: "tasty (ngon) tea and snacks?", type: "np", grammarName: "Cụm danh từ", viTranslation: "trà và đồ ăn nhẹ ngon không?" },
+
+  { text: "If so,", type: "other", grammarName: "Liên từ", viTranslation: "Nếu vậy,", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "won't want to miss", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ không muốn bỏ lỡ" },
+  { text: "Game Night", type: "np", grammarName: "Cụm danh từ", viTranslation: "Đêm Trò chơi" },
+  { text: "at Chez Tournoi.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Chez Tournoi." },
+
+  { text: "Each Friday", type: "np", grammarName: "Cụm danh từ", viTranslation: "Mỗi thứ Sáu", breakLine: true },
+  { text: "from 6 to 10 P.M.,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ 6 đến 10 giờ tối," },
+  { text: "Chez Tournoi", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chez Tournoi" },
+  { text: "welcomes", type: "vp", grammarName: "Cụm động từ", viTranslation: "chào đón" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "to its 44 Broad Avenue, Kingston, location", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đến cơ sở tại 44 Broad Avenue, Kingston" },
+  { text: "for some fun", type: "pp", grammarName: "Cụm giới từ", viTranslation: "để vui chơi" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "131——.", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 131)" },
+
+  { text: "Choose", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy chọn", breakLine: true },
+  { text: "from our collection of board games, card games, trivia (đố vui) games, and more.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong bộ sưu tập board game, trò chơi bài, trò đố vui và nhiều hơn nữa của chúng tôi." },
+
+  { text: "132——.", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 132)", breakLine: true },
+
+  { text: "While you play,", type: "other", grammarName: "Liên từ", viTranslation: "Trong lúc chơi,", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "can savour (nếm)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể thưởng thức" },
+  { text: "our freshly brewed (mới pha) tea, coffee, and hot chocolate", type: "np", grammarName: "Cụm danh từ", viTranslation: "trà, cà phê và sô-cô-la nóng mới pha của chúng tôi" },
+  { text: "133—-", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 133)" },
+  { text: "our mouthwatering (chảy nước miếng) pastries (bánh ngọt).", type: "np", grammarName: "Cụm danh từ", viTranslation: "các loại bánh ngọt hấp dẫn của chúng tôi." },
+
+  { text: "Game Night at Chez Tournoi", type: "np", grammarName: "Cụm danh từ", viTranslation: "Đêm Trò chơi tại Chez Tournoi", breakLine: true },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "the perfect opportunity (cơ hội)", type: "np", grammarName: "Cụm danh từ", viTranslation: "cơ hội hoàn hảo" },
+  { text: "134——", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 134)" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "socialise (giao lưu).", type: "vp", grammarName: "Cụm động từ", viTranslation: "giao lưu." },
+
+  { text: "Reserve (đặt chỗ)", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy đặt chỗ", breakLine: true },
+  { text: "your spot", type: "np", grammarName: "Cụm danh từ", viTranslation: "của bạn" },
+  { text: "by ringing", type: "vp", grammarName: "Cụm động từ", viTranslation: "bằng cách gọi" },
+  { text: "01555-672212", type: "np", grammarName: "Cụm danh từ", viTranslation: "01555-672212" },
+  { text: "or", type: "other", grammarName: "Liên từ", viTranslation: "hoặc" },
+  { text: "visiting", type: "vp", grammarName: "Cụm động từ", viTranslation: "truy cập" },
+  { text: "www.cheztournoi.co.uk/gamenight.", type: "np", grammarName: "Cụm danh từ", viTranslation: "www.cheztournoi.co.uk/gamenight." },
+
+  // ===== Questions 135-138 =====
+  { text: "Questions 135-138", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 135-138", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following e-mail.", type: "np", grammarName: "Cụm danh từ", viTranslation: "email sau." },
+
+  { text: "To: Patton Henry p.henry@xmail.com", type: "np", grammarName: "Cụm danh từ", viTranslation: "Gửi đến: Patton Henry", breakLine: true },
+  { text: "From: Joanna Kanarak jkanarak@kanarakrealty.com", type: "np", grammarName: "Cụm danh từ", viTranslation: "Từ: Joanna Kanarak", breakLine: true },
+  { text: "Date: December 29", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ngày: 29 tháng 12", breakLine: true },
+  { text: "Subject: Lease (hợp đồng thuê) renewal (gia hạn)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chủ đề: Gia hạn hợp đồng thuê", breakLine: true },
+
+  { text: "Dear Mr. Henry,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Kính gửi ông Henry,", breakLine: true },
+
+  { text: "My records", type: "np", grammarName: "Cụm danh từ", viTranslation: "Hồ sơ của tôi", breakLine: true },
+  { text: "indicate (chỉ ra)", type: "vp", grammarName: "Cụm động từ", viTranslation: "cho thấy" },
+  { text: "that", type: "other", grammarName: "Liên từ", viTranslation: "rằng" },
+  { text: "your lease", type: "np", grammarName: "Cụm danh từ", viTranslation: "hợp đồng thuê của ông" },
+  { text: "is due to expire (hết hạn)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sắp hết hạn" },
+  { text: "on March 31.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào ngày 31 tháng 3." },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "ông" },
+  { text: "wish to renew", type: "vp", grammarName: "Cụm động từ", viTranslation: "muốn gia hạn" },
+  { text: "your 135-----,", type: "np", grammarName: "Cụm danh từ", viTranslation: "(135)----- của ông," },
+  { text: "please let me know", type: "vp", grammarName: "Cụm động từ", viTranslation: "vui lòng cho tôi biết" },
+  { text: "before January 31.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trước ngày 31 tháng 1." },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "ông" },
+  { text: "do not reply", type: "vp", grammarName: "Cụm động từ", viTranslation: "không trả lời" },
+  { text: "to this e-mail,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "email này," },
+  { text: "136-----", type: "np", grammarName: "Đại từ", viTranslation: "(136)-----" },
+  { text: "will assume (cho rằng)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ cho rằng" },
+  { text: "that", type: "other", grammarName: "Liên từ", viTranslation: "rằng" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "ông" },
+  { text: "do not wish to continue living", type: "vp", grammarName: "Cụm động từ", viTranslation: "không muốn tiếp tục sống" },
+  { text: "in the 22 Fister Road property.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại bất động sản số 22 Fister Road." },
+
+  { text: "137-----,", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 137)", breakLine: true },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "căn nhà" },
+  { text: "will be listed (liệt kê)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ được đăng" },
+  { text: "as a rental", type: "pp", grammarName: "Cụm giới từ", viTranslation: "làm nhà cho thuê" },
+  { text: "available to a new tenant (người thuê)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "dành cho người thuê mới" },
+  { text: "on April 1.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào ngày 1 tháng 4." },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "ông" },
+  { text: "want to move", type: "vp", grammarName: "Cụm động từ", viTranslation: "muốn chuyển" },
+  { text: "to an apartment larger or smaller", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đến căn hộ lớn hơn hoặc nhỏ hơn" },
+  { text: "than your current one,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "căn hiện tại," },
+  { text: "just let me know.", type: "vp", grammarName: "Cụm động từ", viTranslation: "cứ cho tôi biết." },
+
+  { text: "138----.", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 138)", breakLine: true },
+
+  { text: "Sincerely,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Trân trọng,", breakLine: true },
+  { text: "Joanna Kanarak,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Joanna Kanarak,", breakLine: true },
+  { text: "Kanarak Realty", type: "np", grammarName: "Cụm danh từ", viTranslation: "Công ty Kanarak Realty" },
+
+  // ===== Questions 139-142 =====
+  { text: "Questions 139-142", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 139-142", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following brochure.", type: "np", grammarName: "Cụm danh từ", viTranslation: "tờ rơi sau." },
+
+  { text: "Where to Stay", type: "vp", grammarName: "Cụm động từ", viTranslation: "Nên ở đâu", breakLine: true },
+  { text: "in Devegas", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở Devegas" },
+
+  { text: "The Devegas Peninsula (bán đảo)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Bán đảo Devegas", breakLine: true },
+  { text: "features (bao gồm)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "a wide (rộng) range of 139----- options.", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiều lựa chọn (139)----- đa dạng." },
+
+  { text: "More than twenty luxury hotels", type: "np", grammarName: "Cụm danh từ", viTranslation: "Hơn hai mươi khách sạn hạng sang", breakLine: true },
+  { text: "140----- found", type: "vp", grammarName: "Cụm động từ", viTranslation: "(140)----- được tìm thấy" },
+  { text: "along Devegas Beach,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "dọc bãi biển Devegas," },
+  { text: "along with", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cùng với" },
+  { text: "several moderately (vừa phải) priced hotels", type: "np", grammarName: "Cụm danh từ", viTranslation: "một số khách sạn giá vừa phải" },
+  { text: "in the Devegas Park neighborhood (khu vực).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở khu Devegas Park." },
+
+  { text: "141-----,", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 141)", breakLine: true },
+  { text: "a range of (1 loạt) small inns (nhà nghỉ) and short-term apartment rentals", type: "np", grammarName: "Cụm danh từ", viTranslation: "hàng loạt nhà nghỉ nhỏ và căn hộ cho thuê ngắn hạn" },
+  { text: "are scattered (rải rác)", type: "vp", grammarName: "Cụm động từ", viTranslation: "nằm rải rác" },
+  { text: "throughout the area.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "khắp khu vực." },
+
+  { text: "142-----.", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 142)", breakLine: true },
+
+  { text: "Several inexpensive (rẻ) campsites (khu cắm trại) and youth hostels (ký túc xá thanh niên)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Một số khu cắm trại và nhà nghỉ thanh niên giá rẻ", breakLine: true },
+  { text: "are available", type: "vp", grammarName: "Cụm động từ", viTranslation: "có sẵn" },
+  { text: "throughout the year.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "quanh năm." },
+
+  { text: "For a detailed listing", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Để xem danh sách chi tiết", breakLine: true },
+  { text: "of vacation (nghỉ dưỡng) properties (bất động sản) and hotels", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về các cơ sở nghỉ dưỡng và khách sạn" },
+  { text: "on the peninsula (bán đảo),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên bán đảo," },
+  { text: "see", type: "vp", grammarName: "Cụm động từ", viTranslation: "hãy xem" },
+  { text: "the back cover (bìa sau)", type: "np", grammarName: "Cụm danh từ", viTranslation: "bìa sau" },
+  { text: "of this brochure (sách qcao).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "của tờ rơi này." },
+
+  // ===== Questions 143-146 =====
+  { text: "Questions 143-146", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 143-146", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following notice.", type: "np", grammarName: "Cụm danh từ", viTranslation: "thông báo sau." },
+
+  { text: "Nelsign", type: "np", grammarName: "Cụm danh từ", viTranslation: "Nelsign", breakLine: true },
+
+  { text: "Your signature (chữ ký)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chữ ký của bạn", breakLine: true },
+  { text: "has been captured.", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã được ghi nhận." },
+
+  { text: "The document", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tài liệu", breakLine: true },
+  { text: "is waiting for", type: "vp", grammarName: "Cụm động từ", viTranslation: "đang chờ" },
+  { text: "four more signatures (chữ ký).", type: "np", grammarName: "Cụm danh từ", viTranslation: "thêm bốn chữ ký nữa." },
+
+  { text: "Once", type: "other", grammarName: "Liên từ", viTranslation: "Khi", breakLine: true },
+  { text: "all parties (các bên)", type: "np", grammarName: "Cụm danh từ", viTranslation: "tất cả các bên" },
+  { text: "have signed", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã ký" },
+  { text: "the Nelsign document,", type: "np", grammarName: "Cụm danh từ", viTranslation: "tài liệu Nelsign," },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "will 143-----", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ (143)-----" },
+  { text: "by e-mail.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "qua email." },
+
+  { text: "At that time,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Vào lúc đó,", breakLine: true },
+  { text: "the sender (người gửi)", type: "np", grammarName: "Cụm danh từ", viTranslation: "người gửi" },
+  { text: "will also receive", type: "vp", grammarName: "Cụm động từ", viTranslation: "cũng sẽ nhận được" },
+  { text: "an alert (cảnh báo)", type: "np", grammarName: "Cụm danh từ", viTranslation: "một thông báo" },
+  { text: "that", type: "other", grammarName: "Liên từ", viTranslation: "rằng" },
+  { text: "all necessary signatures", type: "np", grammarName: "Cụm danh từ", viTranslation: "tất cả chữ ký cần thiết" },
+  { text: "on the contract", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên hợp đồng" },
+  { text: "have been acquired (được thu thập).", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã được thu thập đủ." },
+
+  { text: "Upon 144-----,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Khi (144)-----,", breakLine: true },
+  { text: "all signers", type: "np", grammarName: "Cụm danh từ", viTranslation: "tất cả người ký" },
+  { text: "may access (truy cập)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể truy cập" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "save", type: "vp", grammarName: "Cụm động từ", viTranslation: "lưu" },
+  { text: "the document.", type: "np", grammarName: "Cụm danh từ", viTranslation: "tài liệu." },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "have", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "a Nelsign account,", type: "np", grammarName: "Cụm danh từ", viTranslation: "tài khoản Nelsign," },
+  { text: "this contract and any other documents", type: "np", grammarName: "Cụm danh từ", viTranslation: "hợp đồng này và mọi tài liệu khác" },
+  { text: "you have previously signed", type: "vp", grammarName: "Cụm động từ", viTranslation: "bạn đã ký trước đây" },
+  { text: "electronically (điện tử)", type: "adjp", grammarName: "Trạng từ", viTranslation: "bằng điện tử" },
+  { text: "with Nelsign", type: "pp", grammarName: "Cụm giới từ", viTranslation: "qua Nelsign" },
+  { text: "will be saved", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ được lưu" },
+  { text: "in your profile.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong hồ sơ của bạn." },
+
+  { text: "145-----.", type: "other", grammarName: "Chỗ trống", viTranslation: "(chỗ trống 145)", breakLine: true },
+
+  { text: "For any questions", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Với bất kỳ thắc mắc nào", breakLine: true },
+  { text: "146-----", type: "other", grammarName: "Chỗ trống", viTranslation: "(146)-----" },
+  { text: "the signing process (quy trình),", type: "np", grammarName: "Cụm danh từ", viTranslation: "quy trình ký," },
+  { text: "contact", type: "vp", grammarName: "Cụm động từ", viTranslation: "hãy liên hệ" },
+  { text: "our customer support center", type: "np", grammarName: "Cụm danh từ", viTranslation: "trung tâm hỗ trợ khách hàng của chúng tôi" },
+  { text: "at inquiries@nelsign.com.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "qua inquiries@nelsign.com." },
+
+  // ===== Questions 147-148 =====
+  { text: "Questions 147-148", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 147-148", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following coupon.", type: "np", grammarName: "Cụm danh từ", viTranslation: "phiếu giảm giá sau." },
+
+  { text: "COUPON", type: "np", grammarName: "Cụm danh từ", viTranslation: "PHIẾU GIẢM GIÁ", breakLine: true },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "love", type: "vp", grammarName: "Cụm động từ", viTranslation: "yêu thích" },
+  { text: "the delicious cheese and crackers", type: "np", grammarName: "Cụm danh từ", viTranslation: "phô mai và bánh quy giòn ngon" },
+  { text: "served", type: "vp", grammarName: "Cụm động từ", viTranslation: "được phục vụ" },
+  { text: "at Truli Cafés,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Truli Cafés," },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "can now enjoy", type: "vp", grammarName: "Cụm động từ", viTranslation: "giờ đây có thể thưởng thức" },
+  { text: "this popular snack", type: "np", grammarName: "Cụm danh từ", viTranslation: "món ăn nhẹ được yêu thích này" },
+  { text: "at home!", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại nhà!" },
+
+  { text: "Truli crackers and cheese", type: "np", grammarName: "Cụm danh từ", viTranslation: "Bánh quy giòn và phô mai Truli", breakLine: true },
+  { text: "are now available", type: "vp", grammarName: "Cụm động từ", viTranslation: "hiện đã có bán" },
+  { text: "at major supermarkets (siêu thị).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại các siêu thị lớn." },
+
+  { text: "Save", type: "vp", grammarName: "Cụm động từ", viTranslation: "Tiết kiệm", breakLine: true },
+  { text: "$2.00", type: "np", grammarName: "Cụm danh từ", viTranslation: "2 đô la" },
+  { text: "on the purchase of ONE box of Truli crackers (any size)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "khi mua MỘT hộp bánh quy giòn Truli (mọi kích cỡ)" },
+  { text: "when", type: "other", grammarName: "Liên từ", viTranslation: "khi" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "buy", type: "vp", grammarName: "Cụm động từ", viTranslation: "mua" },
+  { text: "any TWO packages of Truli cheese.", type: "np", grammarName: "Cụm danh từ", viTranslation: "bất kỳ HAI gói phô mai Truli nào." },
+
+  { text: "Limit one coupon", type: "vp", grammarName: "Cụm động từ", viTranslation: "Giới hạn một phiếu", breakLine: true },
+  { text: "per customer.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho mỗi khách hàng." },
+
+  { text: "This coupon", type: "np", grammarName: "Cụm danh từ", viTranslation: "Phiếu này", breakLine: true },
+  { text: "may not be combined (kết hợp)", type: "vp", grammarName: "Cụm động từ", viTranslation: "không được kết hợp" },
+  { text: "with other special offers.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với các ưu đãi đặc biệt khác." },
+
+  { text: "Expires July 31.", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hết hạn ngày 31 tháng 7.", breakLine: true },
+
+  // ===== Questions 149-150 =====
+  { text: "Questions 149-150", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 149-150", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following text message.", type: "np", grammarName: "Cụm danh từ", viTranslation: "tin nhắn sau." },
+
+  { text: "Brice's Ice Creamery", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tiệm kem Brice's", breakLine: true },
+  { text: "June 29, 2:02 PM.", type: "np", grammarName: "Cụm danh từ", viTranslation: "29 tháng 6, 2:02 chiều.", breakLine: true },
+
+  { text: "Thank you,", type: "vp", grammarName: "Cụm động từ", viTranslation: "Cảm ơn", breakLine: true },
+  { text: "Nathan Thielen,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Nathan Thielen," },
+  { text: "for joining", type: "vp", grammarName: "Cụm động từ", viTranslation: "vì đã tham gia" },
+  { text: "Brice's Ice Creamery's rewards program.", type: "np", grammarName: "Cụm danh từ", viTranslation: "chương trình tích điểm của tiệm kem Brice's." },
+
+  { text: "You", type: "np", grammarName: "Đại từ", viTranslation: "Bạn", breakLine: true },
+  { text: "have earned", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã nhận được" },
+  { text: "your first points (điểm)", type: "np", grammarName: "Cụm danh từ", viTranslation: "những điểm đầu tiên" },
+  { text: "just by signing up (đăng ký)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "chỉ nhờ đăng ký" },
+  { text: "for our program.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "chương trình của chúng tôi." },
+
+  { text: "For every $1.00", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Với mỗi 1 đô la", breakLine: true },
+  { text: "you spend", type: "vp", grammarName: "Cụm động từ", viTranslation: "bạn chi tiêu" },
+  { text: "in one of our ice cream shops,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại một trong các tiệm kem của chúng tôi," },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "earn", type: "vp", grammarName: "Cụm động từ", viTranslation: "nhận" },
+  { text: "1 point.", type: "np", grammarName: "Cụm danh từ", viTranslation: "1 điểm." },
+
+  { text: "Every 100 points", type: "np", grammarName: "Cụm danh từ", viTranslation: "Mỗi 100 điểm", breakLine: true },
+  { text: "you earn", type: "vp", grammarName: "Cụm động từ", viTranslation: "bạn tích lũy" },
+  { text: "can be redeemed (đổi)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể được đổi" },
+  { text: "for $5.00 off", type: "pp", grammarName: "Cụm giới từ", viTranslation: "lấy mức giảm 5 đô la" },
+  { text: "your purchase of ice cream or store merchandise (hàng hóa),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "khi bạn mua kem hoặc hàng hóa của cửa hàng," },
+  { text: "including", type: "vp", grammarName: "Cụm động từ", viTranslation: "bao gồm" },
+  { text: "T-shirts and tote bags.", type: "np", grammarName: "Cụm danh từ", viTranslation: "áo thun và túi tote." },
+
+  { text: "You", type: "np", grammarName: "Đại từ", viTranslation: "Bạn", breakLine: true },
+  { text: "are even entitled (cấp quyền)", type: "vp", grammarName: "Cụm động từ", viTranslation: "thậm chí còn được hưởng" },
+  { text: "to a free scoop (muỗng)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "một muỗng kem miễn phí" },
+  { text: "at any Brice's Ice Creamery", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại bất kỳ tiệm kem Brice's nào" },
+  { text: "on your birthday.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào ngày sinh nhật." },
+
+  { text: "You have earned:", type: "vp", grammarName: "Cụm động từ", viTranslation: "Bạn đã tích lũy được:", breakLine: true },
+  { text: "20 points.", type: "np", grammarName: "Cụm danh từ", viTranslation: "20 điểm." },
+
+  { text: "You", type: "np", grammarName: "Đại từ", viTranslation: "Bạn", breakLine: true },
+  { text: "are", type: "vp", grammarName: "Cụm động từ", viTranslation: "còn cách" },
+  { text: "80 points away", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "80 điểm" },
+  { text: "from earning", type: "vp", grammarName: "Cụm động từ", viTranslation: "để nhận được" },
+  { text: "your next reward.", type: "np", grammarName: "Cụm danh từ", viTranslation: "phần thưởng tiếp theo." },
+
+  // ===== Questions 151-152 =====
+  { text: "Questions 151-152", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 151-152", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following e-mail.", type: "np", grammarName: "Cụm danh từ", viTranslation: "email sau." },
+
+  { text: "Dear Mr. Tran,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Kính gửi ông Tran,", breakLine: true },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "am contacting", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên hệ với" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "ông" },
+  { text: "because", type: "other", grammarName: "Liên từ", viTranslation: "vì" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "ông" },
+  { text: "did not appear (xuất hiện)", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã không có mặt" },
+  { text: "for your 1:00 p.m appointment", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho cuộc hẹn lúc 1 giờ chiều" },
+  { text: "for your annual physical exam (buổi khám sức khỏe)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "khám sức khỏe định kỳ hằng năm" },
+  { text: "at Hopper's Medical Center (HMC)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Trung tâm Y tế Hopper's (HMC)" },
+  { text: "today.", type: "adjp", grammarName: "Trạng từ", viTranslation: "hôm nay." },
+
+  { text: "As you know,", type: "vp", grammarName: "Cụm động từ", viTranslation: "Như ông đã biết,", breakLine: true },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "việc" },
+  { text: "is our policy (chính sách)", type: "np", grammarName: "Cụm danh từ", viTranslation: "là chính sách của chúng tôi" },
+  { text: "to charge (tính phí)", type: "vp", grammarName: "Cụm động từ", viTranslation: "tính" },
+  { text: "the full appointment fee", type: "np", grammarName: "Cụm danh từ", viTranslation: "toàn bộ phí hẹn khám" },
+  { text: "for missed appointments", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đối với các cuộc hẹn bị lỡ" },
+  { text: "unless", type: "other", grammarName: "Liên từ", viTranslation: "trừ khi" },
+  { text: "the patient (bệnh nhân)", type: "np", grammarName: "Cụm danh từ", viTranslation: "bệnh nhân" },
+  { text: "notifies", type: "vp", grammarName: "Cụm động từ", viTranslation: "thông báo cho" },
+  { text: "us", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "at least 24 hours in advance of (trước)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ít nhất 24 giờ trước" },
+  { text: "the scheduled visit.", type: "np", grammarName: "Cụm danh từ", viTranslation: "buổi khám đã hẹn." },
+
+  { text: "However,", type: "other", grammarName: "Liên từ", viTranslation: "Tuy nhiên,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "are waiving (loại bỏ)", type: "vp", grammarName: "Cụm động từ", viTranslation: "miễn" },
+  { text: "the fee", type: "np", grammarName: "Cụm danh từ", viTranslation: "khoản phí" },
+  { text: "because", type: "other", grammarName: "Liên từ", viTranslation: "vì" },
+  { text: "this", type: "np", grammarName: "Đại từ", viTranslation: "đây" },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "your first missed appointment", type: "np", grammarName: "Cụm danh từ", viTranslation: "lần lỡ hẹn đầu tiên của ông" },
+  { text: "in fifteen years", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong mười lăm năm" },
+  { text: "of being a patient", type: "pp", grammarName: "Cụm giới từ", viTranslation: "làm bệnh nhân" },
+  { text: "at the center.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại trung tâm." },
+
+  { text: "Please contact", type: "vp", grammarName: "Cụm động từ", viTranslation: "Vui lòng liên hệ", breakLine: true },
+  { text: "the office", type: "np", grammarName: "Cụm danh từ", viTranslation: "văn phòng" },
+  { text: "as soon as possible (ngay khi có thể)", type: "adjp", grammarName: "Trạng từ", viTranslation: "càng sớm càng tốt" },
+  { text: "to reschedule", type: "vp", grammarName: "Cụm động từ", viTranslation: "để đặt lại" },
+  { text: "your appointment.", type: "np", grammarName: "Cụm danh từ", viTranslation: "cuộc hẹn của ông." },
+
+  { text: "Your physician (bác sĩ),", type: "np", grammarName: "Cụm danh từ", viTranslation: "Bác sĩ của ông,", breakLine: true },
+  { text: "Dr. Ramanathan,", type: "np", grammarName: "Cụm danh từ", viTranslation: "bác sĩ Ramanathan," },
+  { text: "has created", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã tạo thêm" },
+  { text: "additional appointment times", type: "np", grammarName: "Cụm danh từ", viTranslation: "các khung giờ hẹn bổ sung" },
+  { text: "this month", type: "adjp", grammarName: "Trạng từ", viTranslation: "trong tháng này" },
+  { text: "because", type: "other", grammarName: "Liên từ", viTranslation: "vì" },
+  { text: "he", type: "np", grammarName: "Đại từ", viTranslation: "ông ấy" },
+  { text: "will be", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ" },
+  { text: "on vacation", type: "pp", grammarName: "Cụm giới từ", viTranslation: "nghỉ phép" },
+  { text: "in February.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào tháng 2." },
+
+  { text: "Sincerely,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Trân trọng,", breakLine: true },
+  { text: "Grace Drance,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Grace Drance,", breakLine: true },
+  { text: "Scheduling Assistant", type: "np", grammarName: "Cụm danh từ", viTranslation: "Trợ lý lịch hẹn" },
+
+  // ===== Questions 155-157 =====
+  { text: "Questions 155-157", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 155-157", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following Web page.", type: "np", grammarName: "Cụm danh từ", viTranslation: "trang web sau." },
+
+  { text: "https://www.qualitekkresearch.com/aboutus", type: "np", grammarName: "Cụm danh từ", viTranslation: "https://www.qualitekkresearch.com/aboutus", breakLine: true },
+
+  { text: "Home", type: "np", grammarName: "Cụm danh từ", viTranslation: "Trang chủ", breakLine: true },
+  { text: "About Us", type: "np", grammarName: "Cụm danh từ", viTranslation: "Về chúng tôi", breakLine: true },
+  { text: "Register", type: "vp", grammarName: "Cụm động từ", viTranslation: "Đăng ký", breakLine: true },
+  { text: "Testimonials", type: "np", grammarName: "Cụm danh từ", viTranslation: "Lời chứng thực", breakLine: true },
+
+  { text: "Thousands (hàng nghìn) of large companies", type: "np", grammarName: "Cụm danh từ", viTranslation: "Hàng nghìn công ty lớn", breakLine: true },
+  { text: "use", type: "vp", grammarName: "Cụm động từ", viTranslation: "sử dụng" },
+  { text: "surveys (khảo sát)", type: "np", grammarName: "Cụm danh từ", viTranslation: "các cuộc khảo sát" },
+  { text: "to measure (đo lường)", type: "vp", grammarName: "Cụm động từ", viTranslation: "để đo lường" },
+  { text: "customer satisfaction (hài lòng)", type: "np", grammarName: "Cụm danh từ", viTranslation: "mức độ hài lòng của khách hàng" },
+  { text: "with the goal of improving", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với mục tiêu cải thiện" },
+  { text: "their business.", type: "np", grammarName: "Cụm danh từ", viTranslation: "hoạt động kinh doanh của họ." },
+
+  { text: "Qualitekk Research", type: "np", grammarName: "Cụm danh từ", viTranslation: "Qualitekk Research", breakLine: true },
+  { text: "serves", type: "vp", grammarName: "Cụm động từ", viTranslation: "phục vụ" },
+  { text: "its client companies", type: "np", grammarName: "Cụm danh từ", viTranslation: "các công ty khách hàng của mình" },
+  { text: "by analyzing", type: "vp", grammarName: "Cụm động từ", viTranslation: "bằng cách phân tích" },
+  { text: "survey results", type: "np", grammarName: "Cụm danh từ", viTranslation: "kết quả khảo sát" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "producing", type: "vp", grammarName: "Cụm động từ", viTranslation: "lập" },
+  { text: "detailed reports (báo cáo)", type: "np", grammarName: "Cụm danh từ", viTranslation: "các báo cáo chi tiết" },
+  { text: "containing (chứa)", type: "vp", grammarName: "Cụm động từ", viTranslation: "chứa" },
+  { text: "insights", type: "np", grammarName: "Cụm danh từ", viTranslation: "những hiểu biết sâu sắc" },
+  { text: "about customers' preferences (sở thích).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về sở thích của khách hàng." },
+
+  { text: "— [1] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [1])", breakLine: true },
+
+  { text: "Over twelve years of operation,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Qua mười hai năm hoạt động,", breakLine: true },
+  { text: "Qualitekk Research", type: "np", grammarName: "Cụm danh từ", viTranslation: "Qualitekk Research" },
+  { text: "has built", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã xây dựng" },
+  { text: "a strong reputation (danh tiếng)", type: "np", grammarName: "Cụm danh từ", viTranslation: "danh tiếng vững chắc" },
+  { text: "for providing", type: "vp", grammarName: "Cụm động từ", viTranslation: "về việc cung cấp" },
+  { text: "valuable data.", type: "np", grammarName: "Cụm danh từ", viTranslation: "dữ liệu có giá trị." },
+
+  { text: "Every day,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Mỗi ngày,", breakLine: true },
+  { text: "consumers", type: "np", grammarName: "Cụm danh từ", viTranslation: "người tiêu dùng" },
+  { text: "complete", type: "vp", grammarName: "Cụm động từ", viTranslation: "hoàn thành" },
+  { text: "more than 20,000 online surveys", type: "np", grammarName: "Cụm danh từ", viTranslation: "hơn 20.000 khảo sát trực tuyến" },
+  { text: "that provide", type: "vp", grammarName: "Cụm động từ", viTranslation: "cung cấp" },
+  { text: "feedback", type: "np", grammarName: "Cụm danh từ", viTranslation: "phản hồi" },
+  { text: "on hundreds (hàng trăm) of different products.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về hàng trăm sản phẩm khác nhau." },
+
+  { text: "— [2] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [2])", breakLine: true },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "connect", type: "vp", grammarName: "Cụm động từ", viTranslation: "kết nối" },
+  { text: "consumers (người tiêu thụ)", type: "np", grammarName: "Cụm danh từ", viTranslation: "người tiêu dùng" },
+  { text: "with surveys", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với các khảo sát" },
+  { text: "about products", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về các sản phẩm" },
+  { text: "that may interest", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể khiến" },
+  { text: "them.", type: "np", grammarName: "Đại từ", viTranslation: "họ quan tâm." },
+
+  { text: "Participants (người tham gia)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Người tham gia", breakLine: true },
+  { text: "who submit", type: "vp", grammarName: "Cụm động từ", viTranslation: "nộp" },
+  { text: "a survey", type: "np", grammarName: "Cụm danh từ", viTranslation: "một khảo sát" },
+  { text: "that we facilitate (hỗ trợ)", type: "vp", grammarName: "Cụm động từ", viTranslation: "do chúng tôi hỗ trợ" },
+  { text: "will earn", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ nhận được" },
+  { text: "reward points (điểm thưởng)", type: "np", grammarName: "Cụm danh từ", viTranslation: "điểm thưởng" },
+  { text: "from us.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ chúng tôi." },
+
+  { text: "After as few as (ít nhất) five surveys,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Chỉ sau ít nhất năm khảo sát,", breakLine: true },
+  { text: "points", type: "np", grammarName: "Cụm danh từ", viTranslation: "điểm" },
+  { text: "can be redeemed (đổi)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể được đổi" },
+  { text: "for a gift card", type: "pp", grammarName: "Cụm giới từ", viTranslation: "lấy thẻ quà tặng" },
+  { text: "usable (có thể dùng)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "có thể sử dụng" },
+  { text: "at many stores.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại nhiều cửa hàng." },
+
+  { text: "— [3] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [3])", breakLine: true },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "would like to join,", type: "vp", grammarName: "Cụm động từ", viTranslation: "muốn tham gia," },
+  { text: "visit", type: "vp", grammarName: "Cụm động từ", viTranslation: "hãy truy cập" },
+  { text: "our Register page", type: "np", grammarName: "Cụm danh từ", viTranslation: "trang Đăng ký của chúng tôi" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "complete", type: "vp", grammarName: "Cụm động từ", viTranslation: "hoàn thành" },
+  { text: "the member profile questionnaire (bảng câu hỏi).", type: "np", grammarName: "Cụm danh từ", viTranslation: "bảng câu hỏi hồ sơ thành viên." },
+
+  { text: "This information", type: "np", grammarName: "Cụm danh từ", viTranslation: "Thông tin này", breakLine: true },
+  { text: "will help", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ giúp" },
+  { text: "us", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "identify (xác định)", type: "vp", grammarName: "Cụm động từ", viTranslation: "xác định" },
+  { text: "surveys", type: "np", grammarName: "Cụm danh từ", viTranslation: "các khảo sát" },
+  { text: "that match", type: "vp", grammarName: "Cụm động từ", viTranslation: "phù hợp với" },
+  { text: "your interests.", type: "np", grammarName: "Cụm danh từ", viTranslation: "sở thích của bạn." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "will then (sau đó) send", type: "vp", grammarName: "Cụm động từ", viTranslation: "sau đó sẽ gửi" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "cho bạn" },
+  { text: "links", type: "np", grammarName: "Cụm danh từ", viTranslation: "các liên kết" },
+  { text: "to those surveys", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đến những khảo sát đó" },
+  { text: "to complete", type: "vp", grammarName: "Cụm động từ", viTranslation: "để hoàn thành" },
+  { text: "at your leisure (thời gian rảnh).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào lúc rảnh của bạn." },
+
+  { text: "If", type: "other", grammarName: "Liên từ", viTranslation: "Nếu", breakLine: true },
+  { text: "your interests", type: "np", grammarName: "Cụm danh từ", viTranslation: "sở thích của bạn" },
+  { text: "change,", type: "vp", grammarName: "Cụm động từ", viTranslation: "thay đổi," },
+  { text: "simply update (cập nhật)", type: "vp", grammarName: "Cụm động từ", viTranslation: "chỉ cần cập nhật" },
+  { text: "your profile.", type: "np", grammarName: "Cụm danh từ", viTranslation: "hồ sơ của bạn." },
+
+  { text: "— [4] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [4])", breakLine: true },
+
+  { text: "All responses", type: "np", grammarName: "Cụm danh từ", viTranslation: "Mọi câu trả lời", breakLine: true },
+  { text: "in Qualitekk Research surveys", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong các khảo sát của Qualitekk Research" },
+  { text: "are confidential (bí mật),", type: "vp", grammarName: "Cụm động từ", viTranslation: "đều được bảo mật," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "will never be personally identified", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ không bao giờ bị nhận dạng cá nhân" },
+  { text: "with survey data.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "gắn với dữ liệu khảo sát." },
+
+  // ===== Questions 158-160 =====
+  { text: "Questions 158-160", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 158-160", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following memo.", type: "np", grammarName: "Cụm danh từ", viTranslation: "bản ghi nhớ sau." },
+
+  { text: "MEMO", type: "np", grammarName: "Cụm danh từ", viTranslation: "BẢN GHI NHỚ", breakLine: true },
+  { text: "To: Swansea Spotlight Theatre staff", type: "np", grammarName: "Cụm danh từ", viTranslation: "Gửi: Nhân viên Nhà hát Swansea Spotlight", breakLine: true },
+  { text: "From: Rhian Grifud, Chief Executive", type: "np", grammarName: "Cụm danh từ", viTranslation: "Từ: Rhian Grifud, Tổng giám đốc", breakLine: true },
+  { text: "Date: 7 September", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ngày: 7 tháng 9", breakLine: true },
+  { text: "Subject: What's happening", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chủ đề: Có gì mới", breakLine: true },
+
+  { text: "Dear Staff:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Gửi các nhân viên:", breakLine: true },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "am thrilled (cảm động)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "rất xúc động" },
+  { text: "about the imminent (sắp tới) reopening", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về việc nhà hát sắp mở cửa trở lại" },
+  { text: "of our theatre (nhà hát),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "của chúng ta," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "tôi" },
+  { text: "hope", type: "vp", grammarName: "Cụm động từ", viTranslation: "hy vọng" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "các bạn" },
+  { text: "are too.", type: "adjp", grammarName: "Trạng từ", viTranslation: "cũng vậy." },
+
+  { text: "It", type: "np", grammarName: "Đại từ", viTranslation: "Đó", breakLine: true },
+  { text: "has been", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã là" },
+  { text: "a long process (quá trình),", type: "np", grammarName: "Cụm danh từ", viTranslation: "một quá trình dài," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "audiences (khán giả)", type: "np", grammarName: "Cụm danh từ", viTranslation: "khán giả" },
+  { text: "will undoubtedly (không nghi ngờ) appreciate (đánh giá cao)", type: "vp", grammarName: "Cụm động từ", viTranslation: "chắc chắn sẽ đánh giá cao" },
+  { text: "all the renovations,", type: "np", grammarName: "Cụm danh từ", viTranslation: "tất cả các hạng mục cải tạo," },
+  { text: "including", type: "vp", grammarName: "Cụm động từ", viTranslation: "bao gồm" },
+  { text: "the newly upholstered (bọc) seats", type: "np", grammarName: "Cụm danh từ", viTranslation: "những chiếc ghế mới được bọc lại" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "the updated heating (sưởi) and air-conditioning (điều hòa) system.", type: "np", grammarName: "Cụm danh từ", viTranslation: "hệ thống sưởi và điều hòa được nâng cấp." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "believe", type: "vp", grammarName: "Cụm động từ", viTranslation: "tin rằng" },
+  { text: "that", type: "other", grammarName: "Liên từ", viTranslation: "rằng" },
+  { text: "all of us", type: "np", grammarName: "Đại từ", viTranslation: "tất cả chúng ta" },
+  { text: "who work", type: "vp", grammarName: "Cụm động từ", viTranslation: "làm việc" },
+  { text: "in the theatre", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở nhà hát" },
+  { text: "will enjoy", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ thích" },
+  { text: "the changes", type: "np", grammarName: "Cụm danh từ", viTranslation: "những thay đổi" },
+  { text: "as well.", type: "adjp", grammarName: "Trạng từ", viTranslation: "này nữa." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "know", type: "vp", grammarName: "Cụm động từ", viTranslation: "biết" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "các bạn" },
+  { text: "must be eager (háo hức)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "hẳn rất háo hức" },
+  { text: "to rehearse (tập dượt)", type: "vp", grammarName: "Cụm động từ", viTranslation: "để tập dượt" },
+  { text: "in the newly refurbished (cải tạo) building", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong tòa nhà mới được cải tạo" },
+  { text: "next week.", type: "adjp", grammarName: "Trạng từ", viTranslation: "vào tuần tới." },
+
+  { text: "One of the more visible (dễ thấy) updates", type: "np", grammarName: "Cụm danh từ", viTranslation: "Một trong những cập nhật dễ thấy hơn cả", breakLine: true },
+  { text: "to the space", type: "pp", grammarName: "Cụm giới từ", viTranslation: "của không gian" },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "the Swansea Spotlight Bistro,", type: "np", grammarName: "Cụm danh từ", viTranslation: "quán Swansea Spotlight Bistro," },
+  { text: "a new restaurant", type: "np", grammarName: "Cụm danh từ", viTranslation: "một nhà hàng mới" },
+  { text: "with a large seating area", type: "pp", grammarName: "Cụm giới từ", viTranslation: "có khu ngồi rộng" },
+  { text: "that replaces (thay thế)", type: "vp", grammarName: "Cụm động từ", viTranslation: "thay thế cho" },
+  { text: "our previous concession stand (quầy giảm giá).", type: "np", grammarName: "Cụm danh từ", viTranslation: "quầy bán đồ ăn nhẹ trước đây của chúng ta." },
+
+  { text: "The bistro", type: "np", grammarName: "Cụm danh từ", viTranslation: "Quán", breakLine: true },
+  { text: "faces (hướng ra)", type: "vp", grammarName: "Cụm động từ", viTranslation: "hướng ra" },
+  { text: "the street", type: "np", grammarName: "Cụm danh từ", viTranslation: "đường phố" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "will be open", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ mở cửa" },
+  { text: "to the public", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho công chúng" },
+  { text: "even when", type: "other", grammarName: "Liên từ", viTranslation: "ngay cả khi" },
+  { text: "no performances", type: "np", grammarName: "Cụm danh từ", viTranslation: "không có buổi biểu diễn nào" },
+  { text: "are scheduled.", type: "vp", grammarName: "Cụm động từ", viTranslation: "được lên lịch." },
+
+  { text: "The menu", type: "np", grammarName: "Cụm danh từ", viTranslation: "Thực đơn", breakLine: true },
+  { text: "will feature (bao gồm)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ có" },
+  { text: "a wide selection of beverages, snacks, and meals,", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiều lựa chọn đồ uống, đồ ăn nhẹ và bữa ăn," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "thực đơn" },
+  { text: "will change", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ thay đổi" },
+  { text: "with the seasons (mùa)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "theo mùa" },
+  { text: "to highlight (làm nổi bật)", type: "vp", grammarName: "Cụm động từ", viTranslation: "để làm nổi bật" },
+  { text: "locally available products.", type: "np", grammarName: "Cụm danh từ", viTranslation: "các sản phẩm có sẵn tại địa phương." },
+
+  { text: "On 2 October,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Vào ngày 2 tháng 10,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "will celebrate", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ chào mừng" },
+  { text: "the theatre's grand reopening", type: "np", grammarName: "Cụm danh từ", viTranslation: "lễ mở cửa trở lại của nhà hát" },
+  { text: "with a one-night musical showcase", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bằng một đêm trình diễn âm nhạc" },
+  { text: "starring (đóng chính)", type: "vp", grammarName: "Cụm động từ", viTranslation: "với sự tham gia của" },
+  { text: "some of the best actors (diễn viên) and singers", type: "np", grammarName: "Cụm danh từ", viTranslation: "một số diễn viên và ca sĩ xuất sắc nhất" },
+  { text: "in Wales.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "xứ Wales." },
+
+  { text: "One week later,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Một tuần sau,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "will begin", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ bắt đầu" },
+  { text: "the run of Blake's River.", type: "np", grammarName: "Cụm danh từ", viTranslation: "đợt công diễn vở Blake's River." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "appreciate (đánh giá cao)", type: "vp", grammarName: "Cụm động từ", viTranslation: "trân trọng" },
+  { text: "all your hard work and patience (sự kiên nhẫn)", type: "np", grammarName: "Cụm danh từ", viTranslation: "mọi nỗ lực và sự kiên nhẫn của các bạn" },
+  { text: "as", type: "other", grammarName: "Liên từ", viTranslation: "khi" },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "start", type: "vp", grammarName: "Cụm động từ", viTranslation: "bắt đầu" },
+  { text: "this new chapter", type: "np", grammarName: "Cụm danh từ", viTranslation: "chương mới này" },
+  { text: "in the history of Swansea Spotlight Theatre,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong lịch sử Nhà hát Swansea Spotlight," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "tôi" },
+  { text: "look forward to", type: "vp", grammarName: "Cụm động từ", viTranslation: "mong chờ" },
+  { text: "our exciting future together.", type: "np", grammarName: "Cụm danh từ", viTranslation: "tương lai đầy hứng khởi cùng nhau của chúng ta." },
+
+  // ===== Questions 161-163 =====
+  { text: "Questions 161-163", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 161-163", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following company Web page.", type: "np", grammarName: "Cụm danh từ", viTranslation: "trang web công ty sau." },
+
+  { text: "Join", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy tham gia", breakLine: true },
+  { text: "the Building Blocks Team", type: "np", grammarName: "Cụm danh từ", viTranslation: "Nhóm Building Blocks" },
+
+  { text: "Building Blocks", type: "np", grammarName: "Cụm danh từ", viTranslation: "Building Blocks", breakLine: true },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "the newest employee-led volunteer group", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhóm tình nguyện do nhân viên dẫn dắt mới nhất" },
+  { text: "at Milos Tek Corporation.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Tập đoàn Milos Tek." },
+
+  { text: "Unlike (không giống như)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Không giống như", breakLine: true },
+  { text: "other company groups", type: "np", grammarName: "Cụm danh từ", viTranslation: "các nhóm khác của công ty" },
+  { text: "that organize", type: "vp", grammarName: "Cụm động từ", viTranslation: "tổ chức" },
+  { text: "charity (từ thiện) fund-raisers (gây quỹ)", type: "np", grammarName: "Cụm danh từ", viTranslation: "các buổi gây quỹ từ thiện" },
+  { text: "or", type: "other", grammarName: "Liên từ", viTranslation: "hoặc" },
+  { text: "clean up", type: "vp", grammarName: "Cụm động từ", viTranslation: "dọn dẹp" },
+  { text: "local parks,", type: "np", grammarName: "Cụm danh từ", viTranslation: "các công viên địa phương," },
+  { text: "Building Blocks", type: "np", grammarName: "Cụm danh từ", viTranslation: "Building Blocks" },
+  { text: "asks", type: "vp", grammarName: "Cụm động từ", viTranslation: "đề nghị" },
+  { text: "its members", type: "np", grammarName: "Cụm danh từ", viTranslation: "các thành viên" },
+  { text: "to share", type: "vp", grammarName: "Cụm động từ", viTranslation: "chia sẻ" },
+  { text: "their professional expertise (chuyên môn)", type: "np", grammarName: "Cụm danh từ", viTranslation: "chuyên môn nghề nghiệp của họ" },
+  { text: "with others.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với người khác." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "offer", type: "vp", grammarName: "Cụm động từ", viTranslation: "cung cấp" },
+  { text: "free seminars (hội thảo)", type: "np", grammarName: "Cụm danh từ", viTranslation: "các buổi hội thảo miễn phí" },
+  { text: "on management, public relations (quan hệ), grant writing (viết đơn xin tài trợ), and various types of application software", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về quản lý, quan hệ công chúng, viết đơn xin tài trợ và nhiều loại phần mềm ứng dụng" },
+  { text: "to nonprofit (phi lợi nhuận) organizations", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho các tổ chức phi lợi nhuận" },
+  { text: "in Lalortown.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở Lalortown." },
+
+  { text: "These organizations", type: "np", grammarName: "Cụm danh từ", viTranslation: "Các tổ chức này", breakLine: true },
+  { text: "include", type: "vp", grammarName: "Cụm động từ", viTranslation: "bao gồm" },
+  { text: "youth clubs, community (cộng đồng) sports leagues (giải đấu), the Lalortown Nature Center, and Lalortown's public radio station (đài phát thanh)!", type: "np", grammarName: "Cụm danh từ", viTranslation: "các câu lạc bộ thanh thiếu niên, giải thể thao cộng đồng, Trung tâm Thiên nhiên Lalortown và cả đài phát thanh công cộng của Lalortown!" },
+
+  { text: "Participation", type: "np", grammarName: "Cụm danh từ", viTranslation: "Việc tham gia", breakLine: true },
+  { text: "in Building Blocks", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào Building Blocks" },
+  { text: "generally involves (liên quan)", type: "vp", grammarName: "Cụm động từ", viTranslation: "thường đòi hỏi" },
+  { text: "more time", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiều thời gian hơn" },
+  { text: "than what is encouraged", type: "vp", grammarName: "Cụm động từ", viTranslation: "mức được khuyến khích" },
+  { text: "by other volunteer groups at Milos Tek.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bởi các nhóm tình nguyện khác tại Milos Tek." },
+
+  { text: "While", type: "other", grammarName: "Liên từ", viTranslation: "Trong khi", breakLine: true },
+  { text: "each seminar", type: "np", grammarName: "Cụm danh từ", viTranslation: "mỗi buổi hội thảo" },
+  { text: "is typically (thường)", type: "vp", grammarName: "Cụm động từ", viTranslation: "thường" },
+  { text: "one hour long,", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "dài một giờ," },
+  { text: "planning and preparation (chuẩn bị)", type: "np", grammarName: "Cụm danh từ", viTranslation: "việc lên kế hoạch và chuẩn bị" },
+  { text: "are also", type: "vp", grammarName: "Cụm động từ", viTranslation: "cũng là" },
+  { text: "part of our activities (hoạt động).", type: "np", grammarName: "Cụm danh từ", viTranslation: "một phần hoạt động của chúng tôi." },
+
+  { text: "Those", type: "np", grammarName: "Đại từ", viTranslation: "Những ai", breakLine: true },
+  { text: "who choose to volunteer", type: "vp", grammarName: "Cụm động từ", viTranslation: "chọn làm tình nguyện" },
+  { text: "with us", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cùng chúng tôi" },
+  { text: "can expect to dedicate (dành ra)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể dự kiến dành ra" },
+  { text: "about two hours each week", type: "np", grammarName: "Cụm danh từ", viTranslation: "khoảng hai giờ mỗi tuần" },
+  { text: "to our work.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho công việc của chúng tôi." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "will hold", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ tổ chức" },
+  { text: "a 30-minute information session", type: "np", grammarName: "Cụm danh từ", viTranslation: "một buổi giới thiệu thông tin dài 30 phút" },
+  { text: "on Friday, May 3,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào thứ Sáu, ngày 3 tháng 5," },
+  { text: "at 12:30 P.M.,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "lúc 12:30 trưa," },
+  { text: "in conference room B-2.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại phòng họp B-2." },
+
+  { text: "In the meantime,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Trong thời gian chờ đợi,", breakLine: true },
+  { text: "if you have", type: "vp", grammarName: "Cụm động từ", viTranslation: "nếu bạn có" },
+  { text: "questions,", type: "np", grammarName: "Cụm danh từ", viTranslation: "thắc mắc," },
+  { text: "please contact", type: "vp", grammarName: "Cụm động từ", viTranslation: "vui lòng liên hệ" },
+  { text: "Min-Gyu Byun", type: "np", grammarName: "Cụm danh từ", viTranslation: "Min-Gyu Byun" },
+  { text: "at byun003@milostek.com.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "qua byun003@milostek.com." },
+
+  // ===== Questions 164-167 =====
+  { text: "Questions 164-167", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 164-167", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following article.", type: "np", grammarName: "Cụm danh từ", viTranslation: "bài báo sau." },
+
+  { text: "Mehan Motors", type: "np", grammarName: "Cụm danh từ", viTranslation: "Mehan Motors", breakLine: true },
+  { text: "Appoints", type: "vp", grammarName: "Cụm động từ", viTranslation: "bổ nhiệm" },
+  { text: "New CEO", type: "np", grammarName: "Cụm danh từ", viTranslation: "CEO mới" },
+
+  { text: "By Jonas Schulz", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tác giả: Jonas Schulz", breakLine: true },
+
+  { text: "DETROIT (January 2)—", type: "np", grammarName: "Cụm danh từ", viTranslation: "DETROIT (ngày 2 tháng 1)—", breakLine: true },
+  { text: "This", type: "np", grammarName: "Đại từ", viTranslation: "Đây" },
+  { text: "will be", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ là" },
+  { text: "a year of firsts (những lần đầu)", type: "np", grammarName: "Cụm danh từ", viTranslation: "một năm của những lần đầu tiên" },
+  { text: "at Mehan Motors.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Mehan Motors." },
+
+  { text: "For the first time", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Lần đầu tiên", breakLine: true },
+  { text: "in its 35-year history,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong lịch sử 35 năm," },
+  { text: "the company", type: "np", grammarName: "Cụm danh từ", viTranslation: "công ty" },
+  { text: "is changing", type: "vp", grammarName: "Cụm động từ", viTranslation: "thay đổi" },
+  { text: "its top leadership (lãnh đạo cấp cao);", type: "np", grammarName: "Cụm danh từ", viTranslation: "ban lãnh đạo cao nhất;" },
+  { text: "Mehan", type: "np", grammarName: "Cụm danh từ", viTranslation: "Mehan" },
+  { text: "will soon welcome", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ sớm chào đón" },
+  { text: "the first American and the first woman", type: "np", grammarName: "Cụm danh từ", viTranslation: "người Mỹ đầu tiên và người phụ nữ đầu tiên" },
+  { text: "to hold", type: "vp", grammarName: "Cụm động từ", viTranslation: "giữ" },
+  { text: "the title (chức vụ) of CEO.", type: "np", grammarName: "Cụm danh từ", viTranslation: "chức danh CEO." },
+
+  { text: "— [1] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [1])", breakLine: true },
+
+  { text: "Dana Loeb", type: "np", grammarName: "Cụm danh từ", viTranslation: "Dana Loeb", breakLine: true },
+  { text: "will begin", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ bắt đầu" },
+  { text: "her tenure (nhiệm kỳ)", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiệm kỳ của bà" },
+  { text: "at Mehan Motors", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Mehan Motors" },
+  { text: "on February 1,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào ngày 1 tháng 2," },
+  { text: "the company", type: "np", grammarName: "Cụm danh từ", viTranslation: "công ty" },
+  { text: "announced", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã thông báo" },
+  { text: "yesterday.", type: "adjp", grammarName: "Trạng từ", viTranslation: "hôm qua." },
+
+  { text: "Ms. Loeb", type: "np", grammarName: "Cụm danh từ", viTranslation: "Bà Loeb", breakLine: true },
+  { text: "graduated (tốt nghiệp)", type: "vp", grammarName: "Cụm động từ", viTranslation: "tốt nghiệp" },
+  { text: "with top honors (danh dự)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "loại xuất sắc" },
+  { text: "from Clover University of Technology in Boston,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Đại học Công nghệ Clover ở Boston," },
+  { text: "where", type: "other", grammarName: "Liên từ", viTranslation: "nơi" },
+  { text: "she", type: "np", grammarName: "Đại từ", viTranslation: "bà" },
+  { text: "completed", type: "vp", grammarName: "Cụm động từ", viTranslation: "hoàn thành" },
+  { text: "a degree in electrical engineering (kỹ thuật).", type: "np", grammarName: "Cụm danh từ", viTranslation: "bằng kỹ sư điện." },
+
+  { text: "— [2] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [2])", breakLine: true },
+
+  { text: "She", type: "np", grammarName: "Đại từ", viTranslation: "Bà", breakLine: true },
+  { text: "eventually (cuối cùng) rose", type: "vp", grammarName: "Cụm động từ", viTranslation: "cuối cùng đã thăng tiến" },
+  { text: "to lead", type: "vp", grammarName: "Cụm động từ", viTranslation: "để lãnh đạo" },
+  { text: "the electric vehicle (EV) division", type: "np", grammarName: "Cụm danh từ", viTranslation: "bộ phận xe điện (EV)" },
+  { text: "at Tafts Motors in Detroit.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Tafts Motors ở Detroit." },
+
+  { text: "Within two years,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Trong vòng hai năm,", breakLine: true },
+  { text: "the company", type: "np", grammarName: "Cụm danh từ", viTranslation: "công ty" },
+  { text: "promoted (thăng chức)", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã thăng chức cho" },
+  { text: "her", type: "np", grammarName: "Đại từ", viTranslation: "bà" },
+  { text: "to the position of chief operating officer.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "lên vị trí giám đốc điều hành." },
+
+  { text: "Ms. Loeb", type: "np", grammarName: "Cụm danh từ", viTranslation: "Bà Loeb", breakLine: true },
+  { text: "eventually left", type: "vp", grammarName: "Cụm động từ", viTranslation: "cuối cùng đã rời" },
+  { text: "her position at Tafts Motors", type: "np", grammarName: "Cụm danh từ", viTranslation: "vị trí của bà tại Tafts Motors" },
+  { text: "to become", type: "vp", grammarName: "Cụm động từ", viTranslation: "để trở thành" },
+  { text: "CEO of the British car company Norana,", type: "np", grammarName: "Cụm danh từ", viTranslation: "CEO của hãng xe Anh Norana," },
+  { text: "where", type: "other", grammarName: "Liên từ", viTranslation: "nơi" },
+  { text: "she", type: "np", grammarName: "Đại từ", viTranslation: "bà" },
+  { text: "spearheaded (dẫn đầu)", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã dẫn dắt" },
+  { text: "the introduction of its popular subcompact (nhỏ gọn) EV, the Radar.", type: "np", grammarName: "Cụm danh từ", viTranslation: "việc ra mắt mẫu xe điện cỡ nhỏ nổi tiếng của hãng, Radar." },
+
+  { text: "Within its category (danh mục),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Trong phân khúc của mình,", breakLine: true },
+  { text: "this vehicle", type: "np", grammarName: "Cụm danh từ", viTranslation: "mẫu xe này" },
+  { text: "achieved", type: "vp", grammarName: "Cụm động từ", viTranslation: "đạt được" },
+  { text: "a stunning (kinh ngạc) 20% higher range", type: "np", grammarName: "Cụm danh từ", viTranslation: "quãng đường di chuyển xa hơn 20% đáng kinh ngạc" },
+  { text: "on a single charge (sạc)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong một lần sạc" },
+  { text: "than its nearest EV competitor (đối thủ).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "so với đối thủ xe điện gần nhất." },
+
+  { text: "— [3] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [3])", breakLine: true },
+
+  { text: "Ms. Loeb", type: "np", grammarName: "Cụm danh từ", viTranslation: "Bà Loeb", breakLine: true },
+  { text: "summarized", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã tóm tắt" },
+  { text: "her vision (tầm nhìn)", type: "np", grammarName: "Cụm danh từ", viTranslation: "tầm nhìn của bà" },
+  { text: "for Mehan Motors", type: "pp", grammarName: "Cụm giới từ", viTranslation: "dành cho Mehan Motors" },
+  { text: "in a recent interview.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong một cuộc phỏng vấn gần đây." },
+
+  { text: "— [4] —.", type: "other", grammarName: "Vị trí chèn câu", viTranslation: "(vị trí [4])", breakLine: true },
+
+  { text: "“I", type: "np", grammarName: "Đại từ", viTranslation: "“Tôi", breakLine: true },
+  { text: "look forward to leveraging (tận dụng)", type: "vp", grammarName: "Cụm động từ", viTranslation: "mong được tận dụng" },
+  { text: "the company’s abundant (dồi dào) talent", type: "np", grammarName: "Cụm danh từ", viTranslation: "nguồn nhân tài dồi dào của công ty" },
+  { text: "to build", type: "vp", grammarName: "Cụm động từ", viTranslation: "để chế tạo" },
+  { text: "EVs", type: "np", grammarName: "Cụm danh từ", viTranslation: "xe điện" },
+  { text: "that are affordable (có thể chi trả)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "có giá phải chăng" },
+  { text: "to a mass (đám đông) market.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với thị trường đại chúng." },
+
+  { text: "The vehicles", type: "np", grammarName: "Cụm danh từ", viTranslation: "Những chiếc xe", breakLine: true },
+  { text: "must be offered", type: "vp", grammarName: "Cụm động từ", viTranslation: "phải được bán" },
+  { text: "at a price", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với mức giá" },
+  { text: "that is reasonable (hợp lý)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "hợp lý" },
+  { text: "for the average (trung bình) consumer.”", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đối với người tiêu dùng bình thường.”" },
+
+  // ===== Questions 168-171 =====
+  { text: "Questions 168-171", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 168-171", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following advertisement.", type: "np", grammarName: "Cụm danh từ", viTranslation: "quảng cáo sau." },
+
+  { text: "Dan's Specialty Bicycles", type: "np", grammarName: "Cụm danh từ", viTranslation: "Cửa hàng xe đạp chuyên dụng Dan's", breakLine: true },
+  { text: "60 Everett Way, London, SW11 1AH", type: "np", grammarName: "Cụm danh từ", viTranslation: "60 Everett Way, London, SW11 1AH", breakLine: true },
+  { text: "Hours : Monday–Sunday 10 A.M.–6 P.M.", type: "np", grammarName: "Cụm danh từ", viTranslation: "Giờ mở cửa: Thứ Hai–Chủ nhật, 10 giờ sáng–6 giờ tối", breakLine: true },
+
+  { text: "Tenth Annual Sale", type: "np", grammarName: "Cụm danh từ", viTranslation: "Đợt giảm giá thường niên lần thứ mười", breakLine: true },
+  { text: "of Secondhand (cũ) Bicycles!", type: "pp", grammarName: "Cụm giới từ", viTranslation: "dành cho xe đạp cũ!" },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "are known", type: "vp", grammarName: "Cụm động từ", viTranslation: "được biết đến" },
+  { text: "for our stock of high-end (cao cấp) racing bicycles,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "nhờ kho xe đạp đua cao cấp," },
+  { text: "but", type: "other", grammarName: "Liên từ", viTranslation: "nhưng" },
+  { text: "for a limited time every year,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong thời gian có hạn mỗi năm," },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "offer", type: "vp", grammarName: "Cụm động từ", viTranslation: "cung cấp" },
+  { text: "a wide selection of secondhand mountain, road, and hybrid (lai tạo) bicycles", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiều lựa chọn xe đạp cũ loại địa hình, đường trường và lai" },
+  { text: "for all ages and abilities.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho mọi lứa tuổi và trình độ." },
+
+  { text: "Each bicycle", type: "np", grammarName: "Cụm danh từ", viTranslation: "Mỗi chiếc xe đạp", breakLine: true },
+  { text: "has been refurbished (cải tạo)", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã được tân trang" },
+  { text: "by a certified technician (kỹ thuật viên)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bởi kỹ thuật viên có chứng nhận" },
+  { text: "to ensure", type: "vp", grammarName: "Cụm động từ", viTranslation: "để đảm bảo" },
+  { text: "a smooth, safe ride.", type: "np", grammarName: "Cụm danh từ", viTranslation: "chuyến đi êm ái, an toàn." },
+
+  { text: "Prices", type: "np", grammarName: "Cụm danh từ", viTranslation: "Giá", breakLine: true },
+  { text: "range", type: "vp", grammarName: "Cụm động từ", viTranslation: "dao động" },
+  { text: "from £15 to £50.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ 15 đến 50 bảng." },
+
+  { text: "The sale", type: "np", grammarName: "Cụm danh từ", viTranslation: "Đợt giảm giá", breakLine: true },
+  { text: "runs", type: "vp", grammarName: "Cụm động từ", viTranslation: "diễn ra" },
+  { text: "from 9 May to 22 May.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ ngày 9 đến ngày 22 tháng 5." },
+
+  { text: "Show or mention", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy xuất trình hoặc nhắc đến", breakLine: true },
+  { text: "this advertisement", type: "np", grammarName: "Cụm danh từ", viTranslation: "quảng cáo này" },
+  { text: "to receive", type: "vp", grammarName: "Cụm động từ", viTranslation: "để được giảm" },
+  { text: "ten percent off", type: "np", grammarName: "Cụm danh từ", viTranslation: "mười phần trăm" },
+  { text: "the price of any secondhand or new bicycle.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "giá của bất kỳ xe đạp cũ hoặc mới nào." },
+
+  { text: "For more information,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Để biết thêm thông tin,", breakLine: true },
+  { text: "visit", type: "vp", grammarName: "Cụm động từ", viTranslation: "hãy truy cập" },
+  { text: "www.dansspecialtybicycles.co.uk.", type: "np", grammarName: "Cụm danh từ", viTranslation: "www.dansspecialtybicycles.co.uk." },
+
+  // ===== Questions 176-180 =====
+  { text: "Questions 176-180", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 176-180", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following e-mail and advertisement.", type: "np", grammarName: "Cụm danh từ", viTranslation: "email và quảng cáo sau." },
+
+  { text: "E-Mail Message", type: "np", grammarName: "Cụm danh từ", viTranslation: "Thư điện tử", breakLine: true },
+  { text: "To: Mark Schroeder", type: "np", grammarName: "Cụm danh từ", viTranslation: "Gửi đến: Mark Schroeder", breakLine: true },
+  { text: "From: Ashley Nguyen", type: "np", grammarName: "Cụm danh từ", viTranslation: "Từ: Ashley Nguyen", breakLine: true },
+  { text: "Date: May 5", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ngày: 5 tháng 5", breakLine: true },
+  { text: "Subject: Seasonal hiring", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chủ đề: Tuyển dụng thời vụ", breakLine: true },
+
+  { text: "Hi, Mark,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chào Mark,", breakLine: true },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "hope", type: "vp", grammarName: "Cụm động từ", viTranslation: "hy vọng" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "can take care of", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể lo" },
+  { text: "our summer hiring", type: "np", grammarName: "Cụm danh từ", viTranslation: "việc tuyển dụng mùa hè của chúng ta" },
+  { text: "this year.", type: "adjp", grammarName: "Trạng từ", viTranslation: "năm nay." },
+
+  { text: "Last year,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Năm ngoái,", breakLine: true },
+  { text: "Nancy Adams", type: "np", grammarName: "Cụm danh từ", viTranslation: "Nancy Adams" },
+  { text: "put", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã đăng" },
+  { text: "an advertisement (quảng cáo)", type: "np", grammarName: "Cụm danh từ", viTranslation: "một quảng cáo" },
+  { text: "in the Shoreline Observer,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên tờ Shoreline Observer," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "had", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã có" },
+  { text: "applicants", type: "np", grammarName: "Cụm danh từ", viTranslation: "các ứng viên" },
+  { text: "right away (ngay lập tức).", type: "adjp", grammarName: "Trạng từ", viTranslation: "ngay lập tức." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "suggest using", type: "vp", grammarName: "Cụm động từ", viTranslation: "đề nghị dùng" },
+  { text: "that paper", type: "np", grammarName: "Cụm danh từ", viTranslation: "tờ báo đó" },
+  { text: "again.", type: "adjp", grammarName: "Trạng từ", viTranslation: "một lần nữa." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng ta", breakLine: true },
+  { text: "should hire", type: "vp", grammarName: "Cụm động từ", viTranslation: "nên thuê" },
+  { text: "the same number of workers", type: "np", grammarName: "Cụm danh từ", viTranslation: "số lượng nhân viên bằng năm ngoái" },
+  { text: "as last year,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "như năm ngoái," },
+  { text: "but", type: "other", grammarName: "Liên từ", viTranslation: "nhưng" },
+  { text: "this time,", type: "adjp", grammarName: "Trạng từ", viTranslation: "lần này," },
+  { text: "all four", type: "np", grammarName: "Đại từ", viTranslation: "cả bốn người" },
+  { text: "should be", type: "vp", grammarName: "Cụm động từ", viTranslation: "nên là" },
+  { text: "full-time.", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "toàn thời gian." },
+
+  { text: "Please write", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy viết", breakLine: true },
+  { text: "a new advertisement,", type: "np", grammarName: "Cụm danh từ", viTranslation: "một quảng cáo mới," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "can look at", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể xem" },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "nó" },
+  { text: "together next week", type: "adjp", grammarName: "Trạng từ", viTranslation: "cùng nhau vào tuần sau" },
+  { text: "before sending it out.", type: "vp", grammarName: "Cụm động từ", viTranslation: "trước khi gửi đi." },
+
+  { text: "And by the way,", type: "other", grammarName: "Liên từ", viTranslation: "Nhân tiện,", breakLine: true },
+  { text: "thanks", type: "vp", grammarName: "Cụm động từ", viTranslation: "cảm ơn bạn" },
+  { text: "for your work", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vì công sức" },
+  { text: "getting", type: "vp", grammarName: "Cụm động từ", viTranslation: "chuẩn bị" },
+  { text: "the Gravel Road store", type: "np", grammarName: "Cụm danh từ", viTranslation: "cửa hàng Gravel Road" },
+  { text: "ready to open.", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "sẵn sàng khai trương." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "know", type: "vp", grammarName: "Cụm động từ", viTranslation: "biết" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "bạn" },
+  { text: "will be", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ là" },
+  { text: "a great store manager", type: "np", grammarName: "Cụm danh từ", viTranslation: "một quản lý cửa hàng tuyệt vời" },
+  { text: "when", type: "other", grammarName: "Liên từ", viTranslation: "khi" },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "cửa hàng" },
+  { text: "is operational", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "đi vào hoạt động" },
+  { text: "next month.", type: "adjp", grammarName: "Trạng từ", viTranslation: "vào tháng tới." },
+
+  { text: "One of your first responsibilities", type: "np", grammarName: "Cụm danh từ", viTranslation: "Một trong những trách nhiệm đầu tiên của bạn", breakLine: true },
+  { text: "will be", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ là" },
+  { text: "to put together", type: "vp", grammarName: "Cụm động từ", viTranslation: "xây dựng" },
+  { text: "a terrific (tuyệt vời) staff.", type: "np", grammarName: "Cụm danh từ", viTranslation: "một đội ngũ nhân viên tuyệt vời." },
+
+  { text: "Best,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Thân ái,", breakLine: true },
+  { text: "Ashley Nguyen,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ashley Nguyen,", breakLine: true },
+  { text: "General Manager", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tổng giám đốc" },
+
+  { text: "Surf Bird Beachwear", type: "np", grammarName: "Cụm danh từ", viTranslation: "Surf Bird Beachwear", breakLine: true },
+
+  { text: "Surf Bird Beachwear", type: "np", grammarName: "Cụm danh từ", viTranslation: "Surf Bird Beachwear", breakLine: true },
+  { text: "is hiring", type: "vp", grammarName: "Cụm động từ", viTranslation: "đang tuyển dụng" },
+  { text: "for the Summer!", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho mùa hè!" },
+
+  { text: "Surf Bird Beachwear,", type: "np", grammarName: "Cụm danh từ", viTranslation: "Surf Bird Beachwear,", breakLine: true },
+  { text: "Jaxon Shore's best shop", type: "np", grammarName: "Cụm danh từ", viTranslation: "cửa hàng tốt nhất của Jaxon Shore" },
+  { text: "for casual clothing and beach supplies,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về quần áo thường ngày và đồ dùng đi biển," },
+  { text: "has", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "openings", type: "np", grammarName: "Cụm danh từ", viTranslation: "vị trí tuyển dụng" },
+  { text: "for four full-time workers.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho bốn nhân viên toàn thời gian." },
+
+  { text: "These seasonal positions", type: "np", grammarName: "Cụm danh từ", viTranslation: "Các vị trí thời vụ này", breakLine: true },
+  { text: "will be available", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ có" },
+  { text: "from the beginning of June", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ đầu tháng 6" },
+  { text: "until the end of August.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đến cuối tháng 8." },
+
+  { text: "Duties (nhiệm vụ)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Nhiệm vụ", breakLine: true },
+  { text: "include", type: "vp", grammarName: "Cụm động từ", viTranslation: "bao gồm" },
+  { text: "handling (xử lý) sales,", type: "vp", grammarName: "Cụm động từ", viTranslation: "xử lý việc bán hàng," },
+  { text: "stocking shelves,", type: "vp", grammarName: "Cụm động từ", viTranslation: "xếp hàng lên kệ," },
+  { text: "assisting customers,", type: "vp", grammarName: "Cụm động từ", viTranslation: "hỗ trợ khách hàng," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "setting up", type: "vp", grammarName: "Cụm động từ", viTranslation: "bày trí" },
+  { text: "displays.", type: "np", grammarName: "Cụm danh từ", viTranslation: "các gian trưng bày." },
+
+  { text: "Some early morning and weekend work", type: "np", grammarName: "Cụm danh từ", viTranslation: "Một số ca sáng sớm và cuối tuần", breakLine: true },
+  { text: "is required.", type: "vp", grammarName: "Cụm động từ", viTranslation: "là bắt buộc." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "offer", type: "vp", grammarName: "Cụm động từ", viTranslation: "cung cấp" },
+  { text: "a competitive salary and excellent working conditions.", type: "np", grammarName: "Cụm danh từ", viTranslation: "mức lương cạnh tranh và điều kiện làm việc tuyệt vời." },
+
+  { text: "Surf Bird Beachwear", type: "np", grammarName: "Cụm danh từ", viTranslation: "Surf Bird Beachwear", breakLine: true },
+  { text: "has", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "two locations", type: "np", grammarName: "Cụm danh từ", viTranslation: "hai cơ sở" },
+  { text: "in Jaxon Shore (bờ biển):", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở Jaxon Shore:" },
+  { text: "the original Pelican Inlet store", type: "np", grammarName: "Cụm danh từ", viTranslation: "cửa hàng gốc Pelican Inlet" },
+  { text: "and,", type: "other", grammarName: "Liên từ", viTranslation: "và," },
+  { text: "opening in June,", type: "vp", grammarName: "Cụm động từ", viTranslation: "khai trương vào tháng 6," },
+  { text: "our new Gravel Road location.", type: "np", grammarName: "Cụm danh từ", viTranslation: "cơ sở Gravel Road mới của chúng tôi." },
+
+  { text: "All interviews", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tất cả các buổi phỏng vấn", breakLine: true },
+  { text: "will be conducted", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ được tiến hành" },
+  { text: "at the Gravel Road store.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại cửa hàng Gravel Road." },
+
+  { text: "Go to", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy truy cập", breakLine: true },
+  { text: "www.surfbirdbeachwear.com/jobs", type: "np", grammarName: "Cụm danh từ", viTranslation: "www.surfbirdbeachwear.com/jobs" },
+  { text: "to apply.", type: "vp", grammarName: "Cụm động từ", viTranslation: "để ứng tuyển." },
+
+  // ===== Questions 181-185 =====
+  { text: "Questions 181-185", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 181-185", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following e-mail and blog post.", type: "np", grammarName: "Cụm danh từ", viTranslation: "email và bài đăng blog sau." },
+
+  { text: "Dear Team:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Gửi cả nhóm:", breakLine: true },
+
+  { text: "In late December,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Vào cuối tháng 12,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "will take possession (nhận)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ nhận bàn giao" },
+  { text: "of the first six of the twelve Trak-4 jets (máy bay)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "sáu chiếc đầu tiên trong số mười hai máy bay phản lực Trak-4" },
+  { text: "we ordered", type: "vp", grammarName: "Cụm động từ", viTranslation: "chúng ta đã đặt" },
+  { text: "last year.", type: "adjp", grammarName: "Trạng từ", viTranslation: "năm ngoái." },
+
+  { text: "The remaining (còn lại) jets", type: "np", grammarName: "Cụm danh từ", viTranslation: "Các máy bay còn lại", breakLine: true },
+  { text: "will be delivered", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ được giao" },
+  { text: "throughout the coming year.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong suốt năm tới." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "believe", type: "vp", grammarName: "Cụm động từ", viTranslation: "tin rằng" },
+  { text: "these narrow-body jets", type: "np", grammarName: "Cụm danh từ", viTranslation: "những chiếc máy bay thân hẹp này" },
+  { text: "represent", type: "vp", grammarName: "Cụm động từ", viTranslation: "đại diện cho" },
+  { text: "the future of our airline.", type: "np", grammarName: "Cụm danh từ", viTranslation: "tương lai của hãng hàng không chúng ta." },
+
+  { text: "In addition to (ngoài)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Ngoài việc", breakLine: true },
+  { text: "being", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "the quietest (yên tĩnh) jets", type: "np", grammarName: "Cụm danh từ", viTranslation: "những máy bay êm nhất" },
+  { text: "on the market today,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên thị trường hiện nay," },
+  { text: "they", type: "np", grammarName: "Đại từ", viTranslation: "chúng" },
+  { text: "are", type: "vp", grammarName: "Cụm động từ", viTranslation: "còn" },
+  { text: "20 percent more fuel efficient (tiết kiệm nhiên liệu)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "tiết kiệm nhiên liệu hơn 20 phần trăm" },
+  { text: "than the DB90s", type: "pp", grammarName: "Cụm giới từ", viTranslation: "so với các máy bay DB90" },
+  { text: "that we currently fly.", type: "vp", grammarName: "Cụm động từ", viTranslation: "mà chúng ta hiện đang khai thác." },
+
+  { text: "They", type: "np", grammarName: "Đại từ", viTranslation: "Chúng", breakLine: true },
+  { text: "also have", type: "vp", grammarName: "Cụm động từ", viTranslation: "còn có" },
+  { text: "a smaller passenger capacity (sức chứa) of 76 seats,", type: "np", grammarName: "Cụm danh từ", viTranslation: "sức chứa hành khách nhỏ hơn, 76 ghế," },
+  { text: "making", type: "vp", grammarName: "Cụm động từ", viTranslation: "khiến" },
+  { text: "them", type: "np", grammarName: "Đại từ", viTranslation: "chúng" },
+  { text: "ideally (lý tưởng) suited", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "phù hợp lý tưởng" },
+  { text: "to underserved (chưa phục vụ) regional markets.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với các thị trường khu vực chưa được phục vụ đầy đủ." },
+
+  { text: "In anticipation (dự đoán) of", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Để chuẩn bị cho", breakLine: true },
+  { text: "the upcoming delivery,", type: "np", grammarName: "Cụm danh từ", viTranslation: "đợt giao máy bay sắp tới," },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "must decide", type: "vp", grammarName: "Cụm động từ", viTranslation: "phải quyết định" },
+  { text: "what routes (tuyến đường)", type: "np", grammarName: "Cụm danh từ", viTranslation: "những tuyến đường nào" },
+  { text: "to fly", type: "vp", grammarName: "Cụm động từ", viTranslation: "để bay" },
+  { text: "the new aircraft", type: "np", grammarName: "Cụm danh từ", viTranslation: "máy bay mới" },
+  { text: "on.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên đó." },
+
+  { text: "Perhaps (có lẽ)", type: "adjp", grammarName: "Trạng từ", viTranslation: "Có lẽ", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng ta" },
+  { text: "need to rethink", type: "vp", grammarName: "Cụm động từ", viTranslation: "cần suy nghĩ lại" },
+  { text: "our entire hub (trung tâm) system.", type: "np", grammarName: "Cụm danh từ", viTranslation: "toàn bộ hệ thống trung tâm trung chuyển của chúng ta." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng ta", breakLine: true },
+  { text: "currently have", type: "vp", grammarName: "Cụm động từ", viTranslation: "hiện có" },
+  { text: "seven regional urban (thành phố) hubs", type: "np", grammarName: "Cụm danh từ", viTranslation: "bảy trung tâm đô thị khu vực" },
+  { text: "where", type: "other", grammarName: "Liên từ", viTranslation: "nơi" },
+  { text: "our flights", type: "np", grammarName: "Cụm danh từ", viTranslation: "các chuyến bay của chúng ta" },
+  { text: "connect.", type: "vp", grammarName: "Cụm động từ", viTranslation: "nối chuyến." },
+
+  { text: "Passengers", type: "np", grammarName: "Cụm danh từ", viTranslation: "Hành khách", breakLine: true },
+  { text: "flying", type: "vp", grammarName: "Cụm động từ", viTranslation: "bay" },
+  { text: "between smaller cities", type: "pp", grammarName: "Cụm giới từ", viTranslation: "giữa các thành phố nhỏ hơn" },
+  { text: "must change", type: "vp", grammarName: "Cụm động từ", viTranslation: "phải đổi" },
+  { text: "planes (máy bay)", type: "np", grammarName: "Cụm danh từ", viTranslation: "máy bay" },
+  { text: "at one of these hubs.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại một trong các trung tâm này." },
+
+  { text: "Landing (hạ cánh) fees", type: "np", grammarName: "Cụm danh từ", viTranslation: "Phí hạ cánh", breakLine: true },
+  { text: "at these larger airports", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại các sân bay lớn này" },
+  { text: "tend to be", type: "vp", grammarName: "Cụm động từ", viTranslation: "thường" },
+  { text: "very high.", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "rất cao." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng ta", breakLine: true },
+  { text: "could drastically (đáng kể) reduce", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể giảm đáng kể" },
+  { text: "our operating expenses", type: "np", grammarName: "Cụm danh từ", viTranslation: "chi phí vận hành của mình" },
+  { text: "by flying", type: "vp", grammarName: "Cụm động từ", viTranslation: "bằng cách khai thác" },
+  { text: "narrow-body craft", type: "np", grammarName: "Cụm danh từ", viTranslation: "máy bay thân hẹp" },
+  { text: "directly to and from airports", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bay thẳng đến và đi từ các sân bay" },
+  { text: "located away from", type: "vp", grammarName: "Cụm động từ", viTranslation: "nằm cách xa" },
+  { text: "these major urban centers.", type: "np", grammarName: "Cụm danh từ", viTranslation: "các trung tâm đô thị lớn này." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "am setting up", type: "vp", grammarName: "Cụm động từ", viTranslation: "đang sắp xếp" },
+  { text: "a meeting", type: "np", grammarName: "Cụm danh từ", viTranslation: "một cuộc họp" },
+  { text: "one week from today", type: "adjp", grammarName: "Trạng từ", viTranslation: "một tuần kể từ hôm nay" },
+  { text: "to discuss", type: "vp", grammarName: "Cụm động từ", viTranslation: "để thảo luận" },
+  { text: "this issue.", type: "np", grammarName: "Cụm danh từ", viTranslation: "vấn đề này." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng ta", breakLine: true },
+  { text: "will analyze", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ phân tích" },
+  { text: "the profitability of each of our current routes", type: "np", grammarName: "Cụm danh từ", viTranslation: "khả năng sinh lời của từng tuyến bay hiện tại" },
+  { text: "in order to reach", type: "vp", grammarName: "Cụm động từ", viTranslation: "để đưa ra" },
+  { text: "an informed (sáng suốt) decision.", type: "np", grammarName: "Cụm danh từ", viTranslation: "một quyết định sáng suốt." },
+
+  { text: "Kota Adachi", type: "np", grammarName: "Cụm danh từ", viTranslation: "Kota Adachi", breakLine: true },
+  { text: "CEO, Ventana Airlines", type: "np", grammarName: "Cụm danh từ", viTranslation: "Giám đốc điều hành, Hãng hàng không Ventana", breakLine: true },
+
+  { text: "Travelaider:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Travelaider:", breakLine: true },
+  { text: "A Blog about Where, Why, and How to Travel", type: "np", grammarName: "Cụm danh từ", viTranslation: "Blog về địa điểm, lý do và cách đi du lịch" },
+  { text: "By Ken Ogawa", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tác giả: Ken Ogawa", breakLine: true },
+
+  { text: "Springfield (January 20)—", type: "np", grammarName: "Cụm danh từ", viTranslation: "Springfield (ngày 20 tháng 1)—", breakLine: true },
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi" },
+  { text: "recently flew", type: "vp", grammarName: "Cụm động từ", viTranslation: "gần đây đã bay" },
+  { text: "nonstop (bay thẳng)", type: "adjp", grammarName: "Trạng từ", viTranslation: "bay thẳng" },
+  { text: "from Silver City to Centerville", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ Silver City đến Centerville" },
+  { text: "on Ventana Airlines.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với hãng Ventana." },
+
+  { text: "That's right,", type: "other", grammarName: "Liên từ", viTranslation: "Đúng vậy,", breakLine: true },
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "tôi" },
+  { text: "said", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã nói" },
+  { text: "\"nonstop.\"", type: "adjp", grammarName: "Trạng từ", viTranslation: "\"bay thẳng\"." },
+
+  { text: "Ventana", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ventana", breakLine: true },
+  { text: "now offers", type: "vp", grammarName: "Cụm động từ", viTranslation: "hiện cung cấp" },
+  { text: "direct flights", type: "np", grammarName: "Cụm danh từ", viTranslation: "các chuyến bay thẳng" },
+  { text: "between these two small cities", type: "pp", grammarName: "Cụm giới từ", viTranslation: "giữa hai thành phố nhỏ này" },
+  { text: "with no need", type: "pp", grammarName: "Cụm giới từ", viTranslation: "mà không cần" },
+  { text: "for travelers", type: "pp", grammarName: "Cụm giới từ", viTranslation: "để du khách" },
+  { text: "to change planes", type: "vp", grammarName: "Cụm động từ", viTranslation: "phải đổi máy bay" },
+  { text: "at Midwest National Airport,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Sân bay Quốc gia Midwest," },
+  { text: "our only regional hub.", type: "np", grammarName: "Cụm danh từ", viTranslation: "trung tâm khu vực duy nhất của chúng ta." },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "surely will not miss", type: "vp", grammarName: "Cụm động từ", viTranslation: "chắc chắn sẽ không nhớ" },
+  { text: "hurrying (sự vội vã)", type: "vp", grammarName: "Cụm động từ", viTranslation: "việc chạy vội" },
+  { text: "between terminals (nhà ga)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "giữa các nhà ga" },
+  { text: "at Midwest", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở Midwest" },
+  { text: "through a sea of fellow (người giống mình) passengers.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "qua một biển hành khách đồng hành." },
+
+  { text: "As for the flight itself,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Còn về chuyến bay,", breakLine: true },
+  { text: "Ventana's new jets", type: "np", grammarName: "Cụm danh từ", viTranslation: "những chiếc máy bay mới của Ventana" },
+  { text: "are", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "a vast (sâu) improvement", type: "np", grammarName: "Cụm danh từ", viTranslation: "một sự cải thiện vượt trội" },
+  { text: "over the old ones.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "so với những chiếc cũ." },
+
+  { text: "The possibility of being stuck", type: "np", grammarName: "Cụm danh từ", viTranslation: "Khả năng bị kẹt", breakLine: true },
+  { text: "in the middle seat", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở ghế giữa" },
+  { text: "is no longer", type: "vp", grammarName: "Cụm động từ", viTranslation: "không còn là" },
+  { text: "a concern.", type: "np", grammarName: "Cụm danh từ", viTranslation: "mối bận tâm." },
+
+  { text: "The new aircraft", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy bay mới", breakLine: true },
+  { text: "have only", type: "vp", grammarName: "Cụm động từ", viTranslation: "chỉ có" },
+  { text: "two seats", type: "np", grammarName: "Cụm danh từ", viTranslation: "hai ghế" },
+  { text: "on each side of the aisle (lối đi),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở mỗi bên lối đi," },
+  { text: "so", type: "other", grammarName: "Liên từ", viTranslation: "nên" },
+  { text: "everyone", type: "np", grammarName: "Đại từ", viTranslation: "ai cũng" },
+  { text: "gets", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "an aisle or window seat.", type: "np", grammarName: "Cụm danh từ", viTranslation: "ghế cạnh lối đi hoặc cửa sổ." },
+
+  { text: "The seats", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ghế", breakLine: true },
+  { text: "are also", type: "vp", grammarName: "Cụm động từ", viTranslation: "cũng" },
+  { text: "more comfortable", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "thoải mái hơn" },
+  { text: "than most airplane seats.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "so với hầu hết ghế máy bay." },
+
+  { text: "The legroom (chỗ để chân)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chỗ để chân", breakLine: true },
+  { text: "was", type: "vp", grammarName: "Cụm động từ", viTranslation: "hơi" },
+  { text: "a little tight", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "chật một chút" },
+  { text: "for a person my size,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đối với người có vóc dáng như tôi," },
+  { text: "but", type: "other", grammarName: "Liên từ", viTranslation: "nhưng" },
+  { text: "someone of average (trung bình) height", type: "np", grammarName: "Cụm danh từ", viTranslation: "người có chiều cao trung bình" },
+  { text: "should have", type: "vp", grammarName: "Cụm động từ", viTranslation: "hẳn sẽ có" },
+  { text: "plenty of room", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiều chỗ" },
+  { text: "to stretch out (giãn ra).", type: "vp", grammarName: "Cụm động từ", viTranslation: "để duỗi chân." },
+
+  // ===== Questions 186-190 =====
+  { text: "Questions 186-190", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 186-190", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following notice, e-mail, and schedule.", type: "np", grammarName: "Cụm danh từ", viTranslation: "thông báo, email và lịch trình sau." },
+
+  { text: "Attention:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Lưu ý:", breakLine: true },
+  { text: "Oxton Science Museum Visitors", type: "np", grammarName: "Cụm danh từ", viTranslation: "Quý khách tham quan Bảo tàng Khoa học Oxton" },
+
+  { text: "The Gartner Wing of the museum", type: "np", grammarName: "Cụm danh từ", viTranslation: "Khu Gartner của bảo tàng", breakLine: true },
+  { text: "is currently closed.", type: "vp", grammarName: "Cụm động từ", viTranslation: "hiện đang đóng cửa." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "apologize", type: "vp", grammarName: "Cụm động từ", viTranslation: "xin lỗi" },
+  { text: "for the inconvenience.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vì sự bất tiện này." },
+
+  { text: "Please be patient", type: "vp", grammarName: "Cụm động từ", viTranslation: "Xin hãy kiên nhẫn", breakLine: true },
+  { text: "as", type: "other", grammarName: "Liên từ", viTranslation: "trong lúc" },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "prepare", type: "vp", grammarName: "Cụm động từ", viTranslation: "chuẩn bị" },
+  { text: "the space", type: "np", grammarName: "Cụm danh từ", viTranslation: "không gian" },
+  { text: "for our next exhibit,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho triển lãm tiếp theo," },
+  { text: "The Power of Light.", type: "np", grammarName: "Cụm danh từ", viTranslation: "Sức mạnh của Ánh sáng." },
+
+  { text: "Designed", type: "vp", grammarName: "Cụm động từ", viTranslation: "Được thiết kế", breakLine: true },
+  { text: "by curator (người phụ trách) Sachiko Morishita,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bởi người phụ trách Sachiko Morishita," },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "triển lãm" },
+  { text: "explores (khám phá)", type: "vp", grammarName: "Cụm động từ", viTranslation: "khám phá" },
+  { text: "innovations", type: "np", grammarName: "Cụm danh từ", viTranslation: "những đổi mới" },
+  { text: "that will affect", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ ảnh hưởng đến" },
+  { text: "the future,", type: "np", grammarName: "Cụm danh từ", viTranslation: "tương lai," },
+  { text: "particularly", type: "adjp", grammarName: "Trạng từ", viTranslation: "đặc biệt" },
+  { text: "in the world of lasers and optics (quang học).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong thế giới laser và quang học." },
+
+  { text: "The exhibit", type: "np", grammarName: "Cụm danh từ", viTranslation: "Triển lãm", breakLine: true },
+  { text: "will be open", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ mở cửa" },
+  { text: "to members and private group tours", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho hội viên và các đoàn tham quan riêng" },
+  { text: "starting August 15", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ ngày 15 tháng 8" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "to the general public", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho công chúng" },
+  { text: "starting September 2.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "từ ngày 2 tháng 9." },
+
+  { text: "Good morning, team,", type: "other", grammarName: "Lời chào", viTranslation: "Chào buổi sáng cả nhóm,", breakLine: true },
+
+  { text: "Interns (thực tập sinh) and their mentors (người hướng dẫn)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Thực tập sinh và người hướng dẫn của họ", breakLine: true },
+  { text: "are invited to take", type: "vp", grammarName: "Cụm động từ", viTranslation: "được mời tham gia" },
+  { text: "a trip (chuyến đi)", type: "np", grammarName: "Cụm danh từ", viTranslation: "một chuyến đi" },
+  { text: "to the Oxton Science Museum", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đến Bảo tàng Khoa học Oxton" },
+  { text: "on Friday, August 19.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào thứ Sáu, ngày 19 tháng 8." },
+
+  { text: "Many of you", type: "np", grammarName: "Đại từ", viTranslation: "Nhiều bạn", breakLine: true },
+  { text: "have been", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã tham gia" },
+  { text: "on previous Renmark Solutions trips,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "các chuyến đi trước của Renmark Solutions," },
+  { text: "so", type: "other", grammarName: "Liên từ", viTranslation: "nên" },
+  { text: "you", type: "np", grammarName: "Đại từ", viTranslation: "các bạn" },
+  { text: "know", type: "vp", grammarName: "Cụm động từ", viTranslation: "biết" },
+  { text: "they", type: "np", grammarName: "Đại từ", viTranslation: "chúng" },
+  { text: "are always", type: "vp", grammarName: "Cụm động từ", viTranslation: "luôn" },
+  { text: "educational and exciting (thú vị).", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "mang tính giáo dục và thú vị." },
+
+  { text: "Participants", type: "np", grammarName: "Cụm danh từ", viTranslation: "Người tham gia", breakLine: true },
+  { text: "will get", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ được xem" },
+  { text: "a look", type: "np", grammarName: "Cụm danh từ", viTranslation: "một cái nhìn" },
+  { text: "at the science and technology", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về khoa học và công nghệ" },
+  { text: "that drives (thúc đẩy)", type: "vp", grammarName: "Cụm động từ", viTranslation: "thúc đẩy" },
+  { text: "our company and customers.", type: "np", grammarName: "Cụm danh từ", viTranslation: "công ty và khách hàng của chúng ta." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng ta", breakLine: true },
+  { text: "will see", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ xem" },
+  { text: "The Power of Light exhibit", type: "np", grammarName: "Cụm danh từ", viTranslation: "triển lãm Sức mạnh của Ánh sáng" },
+  { text: "as part of our group tour.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong chuyến tham quan theo đoàn của chúng ta." },
+
+  { text: "Vouchers", type: "np", grammarName: "Cụm danh từ", viTranslation: "Phiếu ăn", breakLine: true },
+  { text: "will be handed out (phân phát)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ được phát" },
+  { text: "for lunch", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho bữa trưa" },
+  { text: "at the museum's restaurant.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại nhà hàng của bảo tàng." },
+
+  { text: "Our schedule", type: "np", grammarName: "Cụm danh từ", viTranslation: "Lịch trình của chúng ta", breakLine: true },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "như" },
+  { text: "as follows.", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "sau." },
+
+  // ===== Questions 191-195 =====
+  { text: "Questions 191-195", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 191-195", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following advertisement, price list, and review.", type: "np", grammarName: "Cụm danh từ", viTranslation: "quảng cáo, bảng giá và bài đánh giá sau." },
+
+  { text: "Protecto Umbrella (ô) Wrapping (quấn) Machines", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy bọc ô Protecto", breakLine: true },
+
+  { text: "Visitors", type: "np", grammarName: "Cụm danh từ", viTranslation: "Khách", breakLine: true },
+  { text: "entering and walking through", type: "vp", grammarName: "Cụm động từ", viTranslation: "bước vào và đi qua" },
+  { text: "a building", type: "np", grammarName: "Cụm danh từ", viTranslation: "một tòa nhà" },
+  { text: "with wet umbrellas", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với ô ướt" },
+  { text: "unintentionally create", type: "vp", grammarName: "Cụm động từ", viTranslation: "vô tình tạo ra" },
+  { text: "wet and slippery (trơn) floors.", type: "np", grammarName: "Cụm danh từ", viTranslation: "sàn nhà ướt và trơn trượt." },
+
+  { text: "The Protecto Umbrella Wrapping machine (PUW machine)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy bọc ô Protecto (máy PUW)", breakLine: true },
+  { text: "provides", type: "vp", grammarName: "Cụm động từ", viTranslation: "mang đến" },
+  { text: "a simple and convenient way", type: "np", grammarName: "Cụm danh từ", viTranslation: "một cách đơn giản và tiện lợi" },
+  { text: "to address (giải quyết)", type: "vp", grammarName: "Cụm động từ", viTranslation: "để giải quyết" },
+  { text: "this problem.", type: "np", grammarName: "Cụm danh từ", viTranslation: "vấn đề này." },
+
+  { text: "The machine", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy", breakLine: true },
+  { text: "is best placed", type: "vp", grammarName: "Cụm động từ", viTranslation: "nên đặt tốt nhất" },
+  { text: "in the entryway of your building.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở lối vào của tòa nhà bạn." },
+
+  { text: "Upon entry,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Khi bước vào,", breakLine: true },
+  { text: "visitors", type: "np", grammarName: "Cụm danh từ", viTranslation: "khách" },
+  { text: "insert", type: "vp", grammarName: "Cụm động từ", viTranslation: "cho" },
+  { text: "their wet (ướt) umbrellas", type: "np", grammarName: "Cụm danh từ", viTranslation: "chiếc ô ướt của họ" },
+  { text: "into the machine.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào máy." },
+
+  { text: "It", type: "np", grammarName: "Đại từ", viTranslation: "Máy", breakLine: true },
+  { text: "automatically wraps", type: "vp", grammarName: "Cụm động từ", viTranslation: "tự động bọc" },
+  { text: "the umbrella", type: "np", grammarName: "Cụm danh từ", viTranslation: "chiếc ô" },
+  { text: "in a clear (trong suốt) plastic bag,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong một túi nhựa trong suốt," },
+  { text: "after which", type: "other", grammarName: "Liên từ", viTranslation: "sau đó" },
+  { text: "visitors", type: "np", grammarName: "Cụm danh từ", viTranslation: "khách" },
+  { text: "can take", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể lấy" },
+  { text: "their umbrellas.", type: "np", grammarName: "Cụm danh từ", viTranslation: "ô của mình." },
+
+  { text: "Upon leaving,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Khi ra về,", breakLine: true },
+  { text: "they", type: "np", grammarName: "Đại từ", viTranslation: "họ" },
+  { text: "can discard (vứt)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể vứt" },
+  { text: "the used bags", type: "np", grammarName: "Cụm danh từ", viTranslation: "những túi đã dùng" },
+  { text: "in any nearby trash can.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào bất kỳ thùng rác nào gần đó." },
+
+  { text: "PUW machines", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy PUW", breakLine: true },
+  { text: "are available", type: "vp", grammarName: "Cụm động từ", viTranslation: "có sẵn" },
+  { text: "with one or two umbrella-wrapping devices", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với một hoặc hai thiết bị bọc ô" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "come", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "in stainless (không gỉ) steel or black.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bằng thép không gỉ hoặc màu đen." },
+
+  { text: "The machine", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy", breakLine: true },
+  { text: "wraps", type: "vp", grammarName: "Cụm động từ", viTranslation: "bọc" },
+  { text: "umbrellas", type: "np", grammarName: "Cụm danh từ", viTranslation: "ô" },
+  { text: "in 1.5 seconds.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong 1,5 giây." },
+
+  { text: "The stand", type: "np", grammarName: "Cụm danh từ", viTranslation: "Giá đỡ", breakLine: true },
+  { text: "is mobile (di động)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "có thể di chuyển" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "thus (do đó)", type: "adjp", grammarName: "Trạng từ", viTranslation: "do đó" },
+  { text: "can be rolled (lăn)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể được lăn" },
+  { text: "around to different locations.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đến nhiều vị trí khác nhau." },
+
+  { text: "Purchase", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy mua", breakLine: true },
+  { text: "a PUW machine", type: "np", grammarName: "Cụm danh từ", viTranslation: "một máy PUW" },
+  { text: "throughout November", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong suốt tháng 11" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "receive", type: "vp", grammarName: "Cụm động từ", viTranslation: "nhận" },
+  { text: "a lightweight (nhẹ) umbrella", type: "np", grammarName: "Cụm danh từ", viTranslation: "một chiếc ô nhẹ" },
+  { text: "featuring (bao gồm)", type: "vp", grammarName: "Cụm động từ", viTranslation: "có in" },
+  { text: "our company logo.", type: "np", grammarName: "Cụm danh từ", viTranslation: "logo công ty chúng tôi." },
+
+  { text: "Office Equipment Review:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Đánh giá thiết bị văn phòng:", breakLine: true },
+  { text: "Protecto Umbrella Wrapping Machines", type: "np", grammarName: "Cụm danh từ", viTranslation: "Máy bọc ô Protecto" },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "love", type: "vp", grammarName: "Cụm động từ", viTranslation: "rất thích" },
+  { text: "our new PUW machine!", type: "np", grammarName: "Cụm danh từ", viTranslation: "chiếc máy PUW mới của chúng tôi!" },
+
+  { text: "As the facilities manager of a medium-sized office building,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Là quản lý cơ sở vật chất của một tòa nhà văn phòng cỡ vừa,", breakLine: true },
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "tôi" },
+  { text: "often have to deal with", type: "vp", grammarName: "Cụm động từ", viTranslation: "thường phải đối phó với" },
+  { text: "the inconvenience (bất tiện) of wet floors", type: "np", grammarName: "Cụm danh từ", viTranslation: "sự bất tiện của sàn ướt" },
+  { text: "caused by", type: "vp", grammarName: "Cụm động từ", viTranslation: "do" },
+  { text: "visitors", type: "np", grammarName: "Cụm danh từ", viTranslation: "khách" },
+  { text: "entering with umbrellas.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "mang ô vào gây ra." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "used to have", type: "vp", grammarName: "Cụm động từ", viTranslation: "từng có" },
+  { text: "a large umbrella stand (giá đỡ)", type: "np", grammarName: "Cụm danh từ", viTranslation: "một giá để ô lớn" },
+  { text: "in the lobby", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở sảnh" },
+  { text: "where visitors could leave", type: "vp", grammarName: "Cụm động từ", viTranslation: "nơi khách có thể để" },
+  { text: "umbrellas,", type: "np", grammarName: "Cụm danh từ", viTranslation: "ô," },
+  { text: "but", type: "other", grammarName: "Liên từ", viTranslation: "nhưng" },
+  { text: "only a few people", type: "np", grammarName: "Cụm danh từ", viTranslation: "chỉ vài người" },
+  { text: "used it.", type: "vp", grammarName: "Cụm động từ", viTranslation: "dùng nó." },
+
+  { text: "Then", type: "adjp", grammarName: "Trạng từ", viTranslation: "Sau đó", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "tried", type: "vp", grammarName: "Cụm động từ", viTranslation: "thử" },
+  { text: "an umbrella stand", type: "np", grammarName: "Cụm danh từ", viTranslation: "một giá để ô" },
+  { text: "that included", type: "vp", grammarName: "Cụm động từ", viTranslation: "có kèm" },
+  { text: "disposable (dùng 1 lần) plastic bags", type: "np", grammarName: "Cụm danh từ", viTranslation: "túi nhựa dùng một lần" },
+  { text: "that visitors could tear off (xé)", type: "vp", grammarName: "Cụm động từ", viTranslation: "mà khách có thể xé ra" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "put", type: "vp", grammarName: "Cụm động từ", viTranslation: "bỏ" },
+  { text: "their umbrellas", type: "np", grammarName: "Cụm danh từ", viTranslation: "ô của họ" },
+  { text: "in.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào." },
+
+  { text: "However,", type: "other", grammarName: "Liên từ", viTranslation: "Tuy nhiên,", breakLine: true },
+  { text: "this method", type: "np", grammarName: "Cụm danh từ", viTranslation: "cách này" },
+  { text: "was ineffective", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "không hiệu quả" },
+  { text: "because", type: "other", grammarName: "Liên từ", viTranslation: "vì" },
+  { text: "the bags", type: "np", grammarName: "Cụm danh từ", viTranslation: "những chiếc túi" },
+  { text: "were rather (khá là) flimsy (mỏng),", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "khá mỏng manh," },
+  { text: "thus (do đó) failing to prevent", type: "vp", grammarName: "Cụm động từ", viTranslation: "do đó không ngăn được" },
+  { text: "water leakage (rò rỉ).", type: "np", grammarName: "Cụm danh từ", viTranslation: "nước rò rỉ." },
+
+  { text: "So,", type: "other", grammarName: "Liên từ", viTranslation: "Vì vậy,", breakLine: true },
+  { text: "in November,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào tháng 11," },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "decided to try", type: "vp", grammarName: "Cụm động từ", viTranslation: "quyết định thử" },
+  { text: "a PUW machine.", type: "np", grammarName: "Cụm danh từ", viTranslation: "một máy PUW." },
+
+  { text: "Because", type: "other", grammarName: "Liên từ", viTranslation: "Vì", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "have", type: "vp", grammarName: "Cụm động từ", viTranslation: "có" },
+  { text: "many visitors,", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhiều khách," },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "purchased", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã mua" },
+  { text: "the PUW machine with two devices (thiết bị)", type: "np", grammarName: "Cụm danh từ", viTranslation: "máy PUW có hai thiết bị" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "ordered", type: "vp", grammarName: "Cụm động từ", viTranslation: "đặt" },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "nó" },
+  { text: "in stainless steel (thép)", type: "pp", grammarName: "Cụm giới từ", viTranslation: "bằng thép không gỉ" },
+  { text: "to match", type: "vp", grammarName: "Cụm động từ", viTranslation: "để hợp với" },
+  { text: "our modern-looking (vẻ ngoài) lobby.", type: "np", grammarName: "Cụm danh từ", viTranslation: "sảnh có vẻ ngoài hiện đại của chúng tôi." },
+
+  { text: "Since then (kể từ đó),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Kể từ đó,", breakLine: true },
+  { text: "the entranceway", type: "np", grammarName: "Cụm danh từ", viTranslation: "lối vào" },
+  { text: "has been", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã" },
+  { text: "safer and cleaner.", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "an toàn và sạch sẽ hơn." },
+
+  { text: "Visitors", type: "np", grammarName: "Cụm danh từ", viTranslation: "Khách", breakLine: true },
+  { text: "love", type: "vp", grammarName: "Cụm động từ", viTranslation: "thích" },
+  { text: "that", type: "other", grammarName: "Liên từ", viTranslation: "việc" },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "máy" },
+  { text: "is automatic,", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "tự động," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "everyone", type: "np", grammarName: "Đại từ", viTranslation: "mọi người" },
+  { text: "is grateful (biết ơn)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "biết ơn" },
+  { text: "that", type: "other", grammarName: "Liên từ", viTranslation: "vì" },
+  { text: "the lobby", type: "np", grammarName: "Cụm danh từ", viTranslation: "sảnh" },
+  { text: "is no longer", type: "vp", grammarName: "Cụm động từ", viTranslation: "không còn" },
+  { text: "wet and slippery (trơn)", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "ướt và trơn" },
+  { text: "because of umbrellas", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vì những chiếc ô" },
+  { text: "dripping (nhỏ giọt) with water!", type: "vp", grammarName: "Cụm động từ", viTranslation: "nhỏ nước tong tỏng!" },
+
+  { text: "—Andrew Barr", type: "np", grammarName: "Cụm danh từ", viTranslation: "—Andrew Barr", breakLine: true },
+
+  // ===== Questions 196-200 =====
+  { text: "Questions 196-200", type: "np", grammarName: "Cụm danh từ", viTranslation: "Câu hỏi 196-200", breakLine: true },
+  { text: "refer to", type: "vp", grammarName: "Cụm động từ", viTranslation: "liên quan đến" },
+  { text: "the following Web page and e-mails.", type: "np", grammarName: "Cụm danh từ", viTranslation: "trang web và các email sau." },
+
+  { text: "https://www.croydonconstruction.co.nz/news", type: "np", grammarName: "Cụm danh từ", viTranslation: "https://www.croydonconstruction.co.nz/news", breakLine: true },
+  { text: "Home", type: "np", grammarName: "Cụm danh từ", viTranslation: "Trang chủ", breakLine: true },
+  { text: "News", type: "np", grammarName: "Cụm danh từ", viTranslation: "Tin tức", breakLine: true },
+  { text: "Jobs", type: "np", grammarName: "Cụm danh từ", viTranslation: "Việc làm", breakLine: true },
+  { text: "Contact Us", type: "vp", grammarName: "Cụm động từ", viTranslation: "Liên hệ với chúng tôi", breakLine: true },
+
+  { text: "In December,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Vào tháng 12,", breakLine: true },
+  { text: "Croydon Construction", type: "np", grammarName: "Cụm danh từ", viTranslation: "Croydon Construction" },
+  { text: "will mark", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ kỷ niệm" },
+  { text: "25 years in business", type: "np", grammarName: "Cụm danh từ", viTranslation: "25 năm hoạt động" },
+  { text: "on the South (Nam) Island of New Zealand.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên Đảo Nam của New Zealand." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "take great pride", type: "vp", grammarName: "Cụm động từ", viTranslation: "rất tự hào" },
+  { text: "in the many buildings", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về nhiều tòa nhà" },
+  { text: "we have built here in Christchurch,", type: "vp", grammarName: "Cụm động từ", viTranslation: "chúng tôi đã xây ở Christchurch này," },
+  { text: "where", type: "other", grammarName: "Liên từ", viTranslation: "nơi" },
+  { text: "our headquarters", type: "np", grammarName: "Cụm danh từ", viTranslation: "trụ sở chính của chúng tôi" },
+  { text: "are located,", type: "vp", grammarName: "Cụm động từ", viTranslation: "đặt," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "in other locations", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở các địa điểm khác" },
+  { text: "along the South Island's east coast (bờ biển).", type: "pp", grammarName: "Cụm giới từ", viTranslation: "dọc bờ biển phía đông của Đảo Nam." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "have been", type: "vp", grammarName: "Cụm động từ", viTranslation: "gần đây đã" },
+  { text: "busy recently", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "bận rộn" },
+  { text: "with some exciting projects.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với một số dự án thú vị." },
+
+  { text: "In Christchurch,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Ở Christchurch,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "are building", type: "vp", grammarName: "Cụm động từ", viTranslation: "đang xây" },
+  { text: "the Willoughby Medical Clinic (phòng khám)", type: "np", grammarName: "Cụm danh từ", viTranslation: "Phòng khám Willoughby" },
+  { text: "on Grove Road,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên đường Grove," },
+  { text: "with a grand opening (khai trương) date of 1 November,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "với ngày khai trương là 1 tháng 11," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "are expanding", type: "vp", grammarName: "Cụm động từ", viTranslation: "đang mở rộng" },
+  { text: "the Blakefield Community (cộng đồng) Centre", type: "np", grammarName: "Cụm danh từ", viTranslation: "Trung tâm Cộng đồng Blakefield" },
+  { text: "on Springdale Avenue.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên đại lộ Springdale." },
+
+  { text: "In Ashburton,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Ở Ashburton,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "have nearly finished", type: "vp", grammarName: "Cụm động từ", viTranslation: "gần hoàn thành" },
+  { text: "a 107-unit apartment complex", type: "np", grammarName: "Cụm danh từ", viTranslation: "một khu chung cư 107 căn" },
+  { text: "on Passerine Way", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên đường Passerine" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "have just broken ground (khởi công)", type: "vp", grammarName: "Cụm động từ", viTranslation: "vừa khởi công" },
+  { text: "on the new wing of the Disnus School", type: "pp", grammarName: "Cụm giới từ", viTranslation: "khu nhà mới của Trường Disnus" },
+  { text: "on Sixth Street.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trên đường Sixth." },
+
+  { text: "Steve Kogler", type: "np", grammarName: "Cụm danh từ", viTranslation: "Steve Kogler", breakLine: true },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "our new chief site engineer (kỹ sư).", type: "np", grammarName: "Cụm danh từ", viTranslation: "kỹ sư trưởng công trường mới của chúng tôi." },
+
+  { text: "Are you interested in", type: "vp", grammarName: "Cụm động từ", viTranslation: "Bạn có quan tâm đến", breakLine: true },
+  { text: "employment", type: "np", grammarName: "Cụm danh từ", viTranslation: "việc làm" },
+  { text: "with Croydon Construction?", type: "pp", grammarName: "Cụm giới từ", viTranslation: "tại Croydon Construction không?" },
+
+  { text: "We're hiring", type: "vp", grammarName: "Cụm động từ", viTranslation: "Chúng tôi đang tuyển", breakLine: true },
+  { text: "for both office and jobsite positions.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "cho cả vị trí văn phòng và công trường." },
+
+  { text: "Go to", type: "vp", grammarName: "Cụm động từ", viTranslation: "Hãy vào", breakLine: true },
+  { text: "our Jobs page", type: "np", grammarName: "Cụm danh từ", viTranslation: "trang Việc làm của chúng tôi" },
+  { text: "to view", type: "vp", grammarName: "Cụm động từ", viTranslation: "để xem" },
+  { text: "open positions", type: "np", grammarName: "Cụm danh từ", viTranslation: "các vị trí đang tuyển" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "to apply.", type: "vp", grammarName: "Cụm động từ", viTranslation: "để ứng tuyển." },
+
+  { text: "Dear Ms. Rahija:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Kính gửi bà Rahija:", breakLine: true },
+
+  { text: "I", type: "np", grammarName: "Đại từ", viTranslation: "Tôi", breakLine: true },
+  { text: "am writing to check", type: "vp", grammarName: "Cụm động từ", viTranslation: "viết thư để hỏi" },
+  { text: "on the status of order 47992,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "về tình trạng đơn hàng 47992," },
+  { text: "which", type: "np", grammarName: "Đại từ", viTranslation: "đơn hàng mà" },
+  { text: "should have arrived", type: "vp", grammarName: "Cụm động từ", viTranslation: "lẽ ra phải đến" },
+  { text: "here by 31 July", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đây trước ngày 31 tháng 7" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "is now", type: "vp", grammarName: "Cụm động từ", viTranslation: "hiện đã" },
+  { text: "two weeks overdue (quá hạn).", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "trễ hai tuần." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "are", type: "vp", grammarName: "Cụm động từ", viTranslation: "rất" },
+  { text: "extremely concerned.", type: "adjp", grammarName: "Cụm tính từ", viTranslation: "lo ngại." },
+
+  { text: "The building's completion date", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ngày hoàn thành tòa nhà", breakLine: true },
+  { text: "cannot be postponed (hoãn).", type: "vp", grammarName: "Cụm động từ", viTranslation: "không thể bị hoãn." },
+
+  { text: "Please let me know", type: "vp", grammarName: "Cụm động từ", viTranslation: "Vui lòng cho tôi biết", breakLine: true },
+  { text: "when", type: "other", grammarName: "Liên từ", viTranslation: "khi nào" },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "can expect", type: "vp", grammarName: "Cụm động từ", viTranslation: "có thể mong" },
+  { text: "our windows", type: "np", grammarName: "Cụm danh từ", viTranslation: "các cửa sổ của chúng tôi" },
+  { text: "to arrive.", type: "vp", grammarName: "Cụm động từ", viTranslation: "được giao đến." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "shall withhold (giữ lại)", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ giữ lại" },
+  { text: "the balance (số dư) of payment", type: "np", grammarName: "Cụm danh từ", viTranslation: "số tiền thanh toán còn lại" },
+  { text: "until", type: "other", grammarName: "Liên từ", viTranslation: "cho đến khi" },
+  { text: "the items", type: "np", grammarName: "Cụm danh từ", viTranslation: "hàng hóa" },
+  { text: "have been received.", type: "vp", grammarName: "Cụm động từ", viTranslation: "được nhận." },
+
+  { text: "Wilma Windows", type: "np", grammarName: "Cụm danh từ", viTranslation: "Wilma Windows", breakLine: true },
+  { text: "has been", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã là" },
+  { text: "our supplier (nhà cung cấp)", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhà cung cấp của chúng tôi" },
+  { text: "for many years,", type: "pp", grammarName: "Cụm giới từ", viTranslation: "nhiều năm nay," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "this", type: "np", grammarName: "Đại từ", viTranslation: "đây" },
+  { text: "is", type: "vp", grammarName: "Cụm động từ", viTranslation: "là" },
+  { text: "the first time", type: "np", grammarName: "Cụm danh từ", viTranslation: "lần đầu tiên" },
+  { text: "a problem like this", type: "np", grammarName: "Cụm danh từ", viTranslation: "một sự cố như thế này" },
+  { text: "has occurred.", type: "vp", grammarName: "Cụm động từ", viTranslation: "xảy ra." },
+
+  { text: "Thank you for", type: "vp", grammarName: "Cụm động từ", viTranslation: "Cảm ơn bà vì", breakLine: true },
+  { text: "your prompt (nhanh chóng) attention", type: "np", grammarName: "Cụm danh từ", viTranslation: "sự quan tâm nhanh chóng của bà" },
+  { text: "to this matter.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "đối với vấn đề này." },
+
+  { text: "Sincerely,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Trân trọng,", breakLine: true },
+  { text: "Zack Makoare", type: "np", grammarName: "Cụm danh từ", viTranslation: "Zack Makoare", breakLine: true },
+  { text: "Construction Manager, Croydon Construction", type: "np", grammarName: "Cụm danh từ", viTranslation: "Quản lý xây dựng, Croydon Construction", breakLine: true },
+
+  { text: "E-Mail Message", type: "np", grammarName: "Cụm danh từ", viTranslation: "Thư điện tử", breakLine: true },
+  { text: "Date: 16 August", type: "np", grammarName: "Cụm danh từ", viTranslation: "Ngày: 16 tháng 8", breakLine: true },
+  { text: "Subject: RE: Shipment overdue", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chủ đề: Trả lời: Lô hàng bị trễ", breakLine: true },
+
+  { text: "Dear Mr. Makoare:", type: "np", grammarName: "Cụm danh từ", viTranslation: "Kính gửi ông Makoare:", breakLine: true },
+
+  { text: "Please accept", type: "vp", grammarName: "Cụm động từ", viTranslation: "Xin ông chấp nhận", breakLine: true },
+  { text: "my apologies", type: "np", grammarName: "Cụm danh từ", viTranslation: "lời xin lỗi của tôi" },
+  { text: "for the lateness (sự chậm trễ) of order 47992.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vì sự chậm trễ của đơn hàng 47992." },
+
+  { text: "A machine", type: "np", grammarName: "Cụm danh từ", viTranslation: "Một chiếc máy", breakLine: true },
+  { text: "in our factory", type: "pp", grammarName: "Cụm giới từ", viTranslation: "trong nhà máy của chúng tôi" },
+  { text: "malfunctioned (trục trặc),", type: "vp", grammarName: "Cụm động từ", viTranslation: "bị trục trặc," },
+  { text: "creating", type: "vp", grammarName: "Cụm động từ", viTranslation: "gây ra" },
+  { text: "flaws (lỗi)", type: "np", grammarName: "Cụm danh từ", viTranslation: "các lỗi" },
+  { text: "in the window glass.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "ở kính cửa sổ." },
+
+  { text: "The machine", type: "np", grammarName: "Cụm danh từ", viTranslation: "Chiếc máy", breakLine: true },
+  { text: "has been repaired,", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã được sửa," },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "the factory", type: "np", grammarName: "Cụm danh từ", viTranslation: "nhà máy" },
+  { text: "is back", type: "vp", grammarName: "Cụm động từ", viTranslation: "đã trở lại" },
+  { text: "to its usual production schedule.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "lịch sản xuất thông thường." },
+
+  { text: "We", type: "np", grammarName: "Đại từ", viTranslation: "Chúng tôi", breakLine: true },
+  { text: "are expediting (thúc đẩy)", type: "vp", grammarName: "Cụm động từ", viTranslation: "đang đẩy nhanh" },
+  { text: "your order", type: "np", grammarName: "Cụm danh từ", viTranslation: "đơn hàng của ông" },
+  { text: "and", type: "other", grammarName: "Liên từ", viTranslation: "và" },
+  { text: "will ship", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ gửi" },
+  { text: "it", type: "np", grammarName: "Đại từ", viTranslation: "nó" },
+  { text: "tomorrow.", type: "adjp", grammarName: "Trạng từ", viTranslation: "vào ngày mai." },
+
+  { text: "It", type: "np", grammarName: "Đại từ", viTranslation: "Hàng", breakLine: true },
+  { text: "will arrive", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ đến" },
+  { text: "at your medical clinic construction site", type: "pp", grammarName: "Cụm giới từ", viTranslation: "công trường xây phòng khám của ông" },
+  { text: "on 20 August.", type: "pp", grammarName: "Cụm giới từ", viTranslation: "vào ngày 20 tháng 8." },
+
+  { text: "As a goodwill (thiện chí) gesture (cử chỉ),", type: "pp", grammarName: "Cụm giới từ", viTranslation: "Như một cử chỉ thiện chí,", breakLine: true },
+  { text: "we", type: "np", grammarName: "Đại từ", viTranslation: "chúng tôi" },
+  { text: "will refund", type: "vp", grammarName: "Cụm động từ", viTranslation: "sẽ hoàn lại" },
+  { text: "your entire shipping fee.", type: "np", grammarName: "Cụm danh từ", viTranslation: "toàn bộ phí vận chuyển của ông." },
+
+  { text: "Sincerely,", type: "adjp", grammarName: "Trạng từ", viTranslation: "Trân trọng,", breakLine: true },
+  { text: "Sanaa Rahija", type: "np", grammarName: "Cụm danh từ", viTranslation: "Sanaa Rahija", breakLine: true }
+];
+
+        window.onload = function() {
+            renderParsedData(DEFAULT_PARSED_DATA);
+        };
+
+function renderParsedData(parsedItems) {
+    const container = document.getElementById('resultContent');
+    container.innerHTML = '';
+
+    document.getElementById('phraseCount').innerText = `${parsedItems.length} cụm từ`;
+
+    parsedItems.forEach((item, index) => {
+        // Nếu phần tử được đánh dấu breakLine hoặc là phần tử đầu tiên, tạo thẻ xuống dòng (div mới)
+        if (item.breakLine || index === 0) {
+            const lineBreak = document.createElement('div');
+            // Tạo khoảng cách giữa các dòng cho thoáng mắt
+            lineBreak.className = index === 0 ? 'w-full mb-2' : 'w-full mt-4 mb-2 pt-2';
+            container.appendChild(lineBreak);
+        }
+
+        const tag = document.createElement('span');
+        
+        // Gán class phân loại màu sắc bình thường dựa vào type (np, vp, pp, adjp, other)
+        tag.className = `phrase-tag phrase-${item.type}`;
+        tag.setAttribute('data-type', item.type);
+        tag.setAttribute('data-index', index);
+
+        const formattedContent = formatBracketText(item.text);
+
+        tag.innerHTML = `
+            ${formattedContent}
+            <span class="tooltip bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl font-normal border border-slate-700">
+                <span class="text-orange-400 font-semibold">${item.viTranslation || item.text}</span>
+                <span class="text-slate-400 block text-[10px] mt-0.5">${item.grammarName}</span>
+            </span>
+        `;
+
+        tag.addEventListener('mouseenter', () => updateDetailCard(item));
+        tag.addEventListener('click', () => updateDetailCard(item));
+
+        container.appendChild(tag);
+    });
+}
+        function updateDetailCard(item) {
+            document.getElementById('cardTranslation').innerText = `"${item.text.trim()}" ➔ ${item.viTranslation || 'N/A'}`;
+            document.getElementById('cardGrammarType').innerText = item.grammarName;
+        }
+
+        function formatBracketText(text) {
+            return text.replace(/(\b[\w']+\b)\s*(\([\s\S]*?\))/g, '<b class="bold-before-bracket">$1</b><span class="bracket-note">$2</span>');
+        }
+
+        function filterType(type) {
+            const tags = document.querySelectorAll('.phrase-tag');
+            const buttons = document.querySelectorAll('.legend-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active', 'bg-slate-800', 'text-white'));
+            event.currentTarget.classList.add('active', 'bg-slate-800', 'text-white');
+
+            tags.forEach(tag => {
+                if (type === 'all') {
+                    tag.classList.remove('active-filter');
+                    tag.style.opacity = '1';
+                } else if (tag.getAttribute('data-type') === type) {
+                    tag.classList.add('active-filter');
+                    tag.style.opacity = '1';
+                } else {
+                    tag.classList.remove('active-filter');
+                    tag.style.opacity = '0.25';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
